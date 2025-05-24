@@ -17,6 +17,7 @@ function Register() {
   });
 
   const [imageFile, setImageFile] = useState(null);
+  const [loading, setLoading] = useState(false); // ⬅️ Spinner state
 
   const handleChange = (e) => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
@@ -28,16 +29,15 @@ function Register() {
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    setLoading(true); // Start spinner
 
     try {
       const formData = new FormData();
       formData.append("user", JSON.stringify(userData));
-      
       formData.append(
         "file",
         imageFile ?? new Blob([], { type: "application/octet-stream" })
       );
-
 
       const response = await register(formData);
       if (response.status === 200) {
@@ -46,6 +46,8 @@ function Register() {
       }
     } catch (e) {
       toast.error(e.response?.data || "Registration failed");
+    } finally {
+      setLoading(false); // Stop spinner
     }
   };
 
@@ -181,7 +183,7 @@ function Register() {
                     </select>
                   </div>
 
-                  {/* Optional Profile Image */}
+                  {/* Profile Image */}
                   <div className="form-outline mb-4">
                     <label
                       htmlFor="file"
@@ -205,8 +207,20 @@ function Register() {
                     <button
                       className="btn btn-primary btn-lg w-50"
                       type="submit"
+                      disabled={loading}
                     >
-                      Register
+                      {loading ? (
+                        <>
+                          <span
+                            className="spinner-border spinner-border-sm me-2"
+                            role="status"
+                            aria-hidden="true"
+                          ></span>
+                          Registering...
+                        </>
+                      ) : (
+                        "Register"
+                      )}
                     </button>
                   </div>
 

@@ -100,7 +100,8 @@ public class SecurityConfiguration {
                                         "/test/s3-health",
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",
-                                        "/swagger-ui.html").permitAll()
+                                        "/swagger-ui.html",
+                                        "/api/logout").permitAll()
                                 .anyRequest().authenticated()
                         )
                 .oauth2Login(oauth2->oauth2.successHandler(googleOAuth2SuccessHandler))

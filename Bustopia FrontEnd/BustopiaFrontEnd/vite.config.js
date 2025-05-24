@@ -1,11 +1,12 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import mkcert from 'vite-plugin-mkcert';
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
   server: {
-    host: '127.0.0.1', // use IPv4 instead of ::1 (IPv6)
-    port: 3000          // optional: change to a known free port
-  }
-})
+    https: true,           // ✅ Now works!
+    host: 'localhost',
+    port: 3000,
+  },
+  plugins: [react(), mkcert()],
+});

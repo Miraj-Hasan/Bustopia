@@ -1,22 +1,26 @@
 import { useNavigate } from "react-router-dom";
-import { logOutFromServer } from "../../BackendAPI/UserBackend";
 import { toast } from "react-toastify";
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import assets from "../../assets/assets";
 import { Spinner } from "react-bootstrap";
+import { logOutFromServer } from "../../Api/ApiCalls";
+import { UserContext } from "../../Context/UserContext";
 
 export function LogOut(){
     const navigate = useNavigate();
-
+    const {setUser} = useContext(UserContext);
     async function signOut(){
         try{
             const res = await logOutFromServer();
             if(res.status === 200){
                 navigate("/login");
+                setUser(null)
+                sessionStorage.setItem("user",null)
                 toast.success("Logged out successfully");
             }   
-        }catch{
-            toast.error("Something went wrong");
+        }catch(e){
+          console.log(e)
+          toast.error("Something went wrong");
         }
     }
 

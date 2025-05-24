@@ -16,16 +16,12 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 @Component
 public class GoogleOAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     @Value("${frontend.origin}")
     private String FRONT_END_ORIGIN;
-
-    @Value("${backend.origin}")
-    private String BACK_END_ORIGIN;
 
     @Autowired
     private UserRepository userRepository;
@@ -41,20 +37,30 @@ public class GoogleOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         String email = oauthUser.getAttribute("email");
 
         // Create user if doesn't exist
-        if (userRepository.findByEmail(email) == null) {
-            UserEntity newUser = new UserEntity();
-            newUser.setEmail(email);
-            newUser.setUserName(oauthUser.getAttribute("name"));
-            newUser.setRole("ROLE_USER");
-            userRepository.save(newUser);
+        UserEntity user = userRepository.findByEmail(email);
+        if (user == null) {
+            user = new UserEntity();
+            user.setEmail(email);
+            user.setUserName(oauthUser.getAttribute("name"));
+            user.setRole("ROLE_USER");
+            userRepository.save(user);
         }
 
         // Generate JWT
-        String jwt = jwtUtility.generateToken(userRepository.findByEmail(email));
+        String jwt = jwtUtility.generateToken(user);
 
-        // ✅ Redirect to frontend with token in URL
-        String redirectUrl = FRONT_END_ORIGIN + "/oauth-success?token=" + jwt;
-        response.sendRedirect(redirectUrl);
+        // ✅ Set JWT in Secure HttpOnly Cookie
+        ResponseCookie cookie = ResponseCookie.from("jwt", jwt)
+                .httpOnly(true)
+                .secure(true) // Make sure HTTPS is used in production
+                .path("/")
+                .sameSite("None") // Required for cross-site cookie
+                .maxAge(60 * 60) // 1 hour expiry
+                .build();
+
+        response.setHeader("Set-Cookie", cookie.toString());
+
+        // ✅ Redirect to frontend without token in URL
+        response.sendRedirect(FRONT_END_ORIGIN + "/oauth-success");
     }
-
 }

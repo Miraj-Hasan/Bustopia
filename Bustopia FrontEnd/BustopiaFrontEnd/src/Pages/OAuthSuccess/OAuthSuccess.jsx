@@ -1,22 +1,25 @@
 import { useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserRoomContext } from "../../Context/RoomContext";
 import axios from "axios";
 import { Spinner } from "react-bootstrap";
 import assets from "../../assets/assets";
+import { UserContext } from "../../Context/UserContext";
 
 export default function OAuthSuccess() {
     const navigate = useNavigate();
 
-    const { setUser } = useContext(UserRoomContext);
     const backendURL = import.meta.env.VITE_API_BASE_URL;
+
+    const {setUser} = useContext(UserContext);
 
     async function getUser() {
       try {
         const res = await axios.get(`${backendURL}/api/me`, {
-          withCredentials: true,
+          withCredentials: true, 
         });
         setUser(res.data);
+        console.log(res.data)
+        sessionStorage.setItem("user", JSON.stringify(res.data));
         navigate("/");
       } catch (err) {
         navigate("/login");
@@ -45,7 +48,7 @@ export default function OAuthSuccess() {
           <Spinner animation="border" variant="primary" role="status" />
 
           <p className="text-muted mt-3">
-            Please wait while we fetch your profile and setup your chatroom.
+            Please wait while we set up your profile.
           </p>
         </div>
       </div>

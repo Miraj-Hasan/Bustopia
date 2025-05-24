@@ -32,3 +32,40 @@ export const verifyEmailLink = async (code, email) => {
   );
   return response; 
 };
+
+
+export const sendResetEmail = async (email) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/api/forgot-password`,
+    { email },
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",              // ei header dewa optional ... na dileo hobe
+      },
+    }
+  );
+  return response;
+};
+
+
+export const resetPassword = async (password, token) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/api/reset-password/${token}`,
+    { password },
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  return response;
+};
+
+export const logOutFromServer =async () => {
+  const response = await axios.post(`${API_BASE_URL}/api/logout`, {}, {
+    withCredentials: true,
+  });
+  return response;
+};

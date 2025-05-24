@@ -1,15 +1,13 @@
 import { createContext, useState } from "react";
 
-
 export const UserContext = createContext();
 
-export function UserProvider({children}){
-    const [userName , setUserName ] = useState("");
-    const [role , setRole ] = useState("")
+export function UserProvider({ children }) {
+  const [user, setUser] = useState({}); // Empty object by default
 
-    return (
-        <UserContext.Provider value={{userName , role , setUserName , setRole}}>
-            {children}
-        </UserContext.Provider>
-    )
+  return (
+    <UserContext.Provider value={{ user, setUser }}>
+      {children}
+    </UserContext.Provider>
+  );
 }

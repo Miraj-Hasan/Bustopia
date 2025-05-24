@@ -27,7 +27,7 @@ function Verify() {
           setTimeout(() => navigate("/login"), 3000);
         }
       } catch (err) {
-        toast.error(err || "Verification failed.");
+        toast.error(err?.response?.data || "Verification failed.");
         setStatus("error");
       }
     };
@@ -38,7 +38,7 @@ function Verify() {
   return (
     <div
       className="container d-flex flex-column justify-content-center align-items-center"
-      style={{ minHeight: "70vh" }}
+      style={{ minHeight: "70vh", textAlign: "center" }}
     >
       {status === "verifying" && (
         <>
@@ -52,13 +52,23 @@ function Verify() {
           <h4>Verifying your account...</h4>
         </>
       )}
+
       {status === "success" && (
-        <h4 className="text-success">
-          ✅ Account verified! Redirecting to login...
-        </h4>
+        <>
+          <div className="text-success mb-3" style={{ fontSize: "3rem" }}>
+            ✅
+          </div>
+          <h4>Account verified! Redirecting to login...</h4>
+        </>
       )}
+
       {status === "error" && (
-        <h4 className="text-danger">❌ Verification failed or expired.</h4>
+        <>
+          <div className="text-danger mb-3" style={{ fontSize: "3rem" }}>
+            ❌
+          </div>
+          <h4>Verification failed or expired.</h4>
+        </>
       )}
     </div>
   );

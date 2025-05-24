@@ -37,6 +37,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -201,12 +202,11 @@ public class AuthenticationController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing or invalid Authorization header.");
+    public ResponseEntity<?> getCurrentUser(@CookieValue(name = "jwt", required = false) String token) {
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No JWT cookie found.");
         }
 
-        String token = authHeader.substring(7); // Remove "Bearer " prefix
         String email = jwtUtility.extractUserName(token);
 
         if (email == null) {
@@ -218,14 +218,32 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized.");
         }
 
-        return ResponseEntity.ok(Map.of(
-                "email", user.getEmail(),
-                "username", user.getUsername(),
-                "role", user.getRole(),
-                "gender", user.getGender(),
-                "phone", user.getPhone(),
-                "image", user.getImageUrl()
-        ));
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("email", user.getEmail());
+        userMap.put("username", user.getUsername());
+        userMap.put("role", user.getRole());
+        userMap.put("gender", user.getGender());
+        userMap.put("phone", user.getPhone());
+        userMap.put("image", user.getImageUrl());
+
+        return ResponseEntity.ok(userMap);
+    }
+
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletResponse response) {
+        // Clear the JWT cookie
+        ResponseCookie cookie = ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0) // Expire immediately
+                .sameSite("None")
+                .build();
+
+        response.setHeader("Set-Cookie", cookie.toString());
+
+        return ResponseEntity.ok("Logged out successfully");
     }
 
     @GetMapping("/ping")
