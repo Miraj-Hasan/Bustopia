@@ -19,7 +19,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,6 +33,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -71,47 +76,73 @@ public class AuthenticationController {
     private String FRONT_END;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest ){
-
-        try{
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),loginRequest.getPassword())
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    )
             );
+
             UserEntity userDetails = userRepository.findByEmail(loginRequest.getEmail());
             String token = jwtUtility.generateToken(userDetails);
 
-            // ✅ Return only non-sensitive info
+            ResponseCookie cookie = ResponseCookie.from("jwt", token)
+                    .httpOnly(true)
+                    .secure(true) // Required for SameSite=None
+                    .path("/")
+                    .sameSite("None") // Required for cross-origin (OAuth)
+                    .maxAge(Duration.ofHours(6))
+                    .build();
+
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
             return ResponseEntity.ok(Map.of(
                     "username", userDetails.getUsername(),
-                    "role", userDetails.getRole(),
-                    "jwt",token
+                    "role", userDetails.getRole()
             ));
 
-        }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Bad Credentials!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Bad credentials");
         }
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestPart("user") String userData,
-                                  @RequestPart("file") MultipartFile image) {
+                                  @RequestPart(value="file" , required = false) MultipartFile image) {
         try {
-        RegisterRequest registerRequest = new ObjectMapper().readValue(userData, RegisterRequest.class);
-        byte[] imageBytes = image.getBytes();
-        String code = tempRegistrationService.cacheRegistration(registerRequest, imageBytes);
-        emailService.sendVerificationEmail(registerRequest.getEmail(), "Your verification code is: " + code + "\nValid for 5 minutes.", "Account Verification for BusTopia.");
-        return ResponseEntity.ok("Verification email sent. Please verify within 5 minutes.");
+            RegisterRequest registerRequest = new ObjectMapper().readValue(userData, RegisterRequest.class);
+            byte[] imageBytes = image != null ? image.getBytes() : null;
+            String code = tempRegistrationService.cacheRegistration(registerRequest, imageBytes);
+
+            String frontendBaseUrl = "http://localhost:3000/verify";
+
+            String verificationLink = frontendBaseUrl + "?code=" + code + "&email=" + URLEncoder.encode(registerRequest.getEmail(), StandardCharsets.UTF_8);
+
+            String message = "Welcome to BusTopia!\n\n"
+                    + "Please verify your account by clicking the link below:\n"
+                    + verificationLink + "\n\n"
+                    + "This link is valid for 5 minutes.";
+
+            emailService.sendVerificationEmail(
+                registerRequest.getEmail(),
+                message,
+                "Account Verification for BusTopia"
+            );
+            return ResponseEntity.ok("Verification email sent. Please verify within 5 minutes.");
+
         } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Registration failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Registration failed: " + e.getMessage());
         }
     }
 
-    @PostMapping("/verify-registration")
-    public ResponseEntity<?> verify(@RequestParam String code) {
+    @GetMapping("/verify-registration")
+    public ResponseEntity<?> verify(@RequestParam String code, @RequestParam String email) {
         try {
             CachedRegistration cached = tempRegistrationService.getRegistration(code);
-            if (cached == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or expired code.");
+            if (cached == null || !cached.getRegisterRequest().getEmail().equalsIgnoreCase(email)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or expired link.");
             }
             userService.register(cached.getRegisterRequest(), new MockMultipartFile(
                     "file", "image.jpg", "image/jpeg", cached.getImageBytes()));
