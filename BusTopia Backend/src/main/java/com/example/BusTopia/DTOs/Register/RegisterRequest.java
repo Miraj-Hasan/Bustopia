@@ -19,4 +19,7 @@ public class RegisterRequest {
     String password;
     @NotNull
     String phone;
+    @NotNull
+    String gender;
+
 }

@@ -89,7 +89,18 @@ public class SecurityConfiguration {
                 .authenticationProvider(getAuthenticationProvider())
                 .addFilterBefore(jwtAuthFilter , UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/login","/api/register","/api/forgot-password","/api/reset-password/*","/ws/**","/api/ping","/api/me","/cookie-bridge").permitAll()
+                        auth.requestMatchers("/api/login",
+                                        "/api/register",
+                                        "/api/verify-registration",
+                                        "/api/forgot-password",
+                                        "/api/reset-password/*",
+                                        "/api/ping",
+                                        "/api/me",
+                                        "/test/redis-health",
+                                        "/test/s3-health",
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html").permitAll()
                                 .anyRequest().authenticated()
                         )
                 .oauth2Login(oauth2->oauth2.successHandler(googleOAuth2SuccessHandler))

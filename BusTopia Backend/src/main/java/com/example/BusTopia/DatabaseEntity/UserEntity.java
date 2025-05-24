@@ -36,6 +36,10 @@ public class UserEntity implements UserDetails {
 
     private String role;
 
+    private String gender;
+
+    private String imageUrl;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(this.role));

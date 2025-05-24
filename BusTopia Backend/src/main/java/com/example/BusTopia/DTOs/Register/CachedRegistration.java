@@ -1,0 +1,24 @@
+package com.example.BusTopia.DTOs.Register;
+
+import lombok.*;
+
+import java.io.Serializable;
+import java.util.Base64;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class CachedRegistration implements Serializable {
+    private RegisterRequest registerRequest;
+
+    private String imageBase64;
+
+    public CachedRegistration(RegisterRequest registerRequest, byte[] imageBytes) {
+        this.registerRequest = registerRequest;
+        this.imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
+    }
+
+    public byte[] getImageBytes() {
+        return Base64.getDecoder().decode(imageBase64);
+    }
+}
