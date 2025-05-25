@@ -3,6 +3,7 @@ package com.example.BusTopia.Services;
 
 import com.example.BusTopia.AwsConfiguration.AwsFileUpload;
 import com.example.BusTopia.DTOs.Register.RegisterRequest;
+import com.example.BusTopia.DTOs.UpdateProfile.UpdateProfileDTO;
 import com.example.BusTopia.DatabaseEntity.UserEntity;
 import com.example.BusTopia.MySqlRepositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +28,33 @@ public class UserService {
 
     public UserEntity register(RegisterRequest registerRequest, MultipartFile imageFile) throws Exception{
         UserEntity userEntity = convertRegisterRequestToUser(registerRequest);
-        String imageUrl = awsFileUpload.uploadFile(imageFile);
-        userEntity.setImageUrl(imageUrl);
+        if( imageFile != null && !imageFile.isEmpty() ){
+            String imageUrl = awsFileUpload.uploadFile(imageFile);
+            userEntity.setImageUrl(imageUrl);
+        }
         userEntity = userRepository.save(userEntity);
         return userEntity;
+    }
+
+    public UserEntity updateUserProfile(String email, UpdateProfileDTO update, MultipartFile imageFile) throws Exception {
+
+        UserEntity user = userRepository.findByEmail(email);
+
+        user.setName(update.getUsername());
+        user.setPhone(update.getPhone());
+        user.setGender(update.getGender());
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+
+            String previousImageUrl = user.getImageUrl();
+            if (previousImageUrl != null && !previousImageUrl.isEmpty()) {
+                awsFileUpload.deleteFile(previousImageUrl);
+            }
+
+            String newImageUrl = awsFileUpload.uploadFile(imageFile);
+            user.setImageUrl(newImageUrl);
+        }
+        return userRepository.save(user);
     }
 
     private UserEntity convertRegisterRequestToUser(RegisterRequest registerRequest) {

@@ -6,6 +6,7 @@ import { Home } from './Pages/Home/Home';
 import Login from './Pages/Login/LogIn'
 import { LogOut } from './Pages/LogOut/Logout';
 import OAuthSuccess from './Pages/OAuthSuccess/OAuthSuccess';
+import { Profile } from './Pages/Profile/Profile';
 import Register from './Pages/Register/Register';
 import ResetPassword from './Pages/ResetPassword/ResetPassword';
 import Verify from './Pages/VerifyEmail/Verify';
@@ -24,6 +25,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route path='/profile' element={<ProtectedRoute><Profile /></ProtectedRoute>}></Route>
 
         <Route path='/logout' element={<LogOut/>}/>
 

@@ -15,9 +15,6 @@ export const login = async (loginData) => {
 export const register = async (formData) => {
   const response = await axios.post(`${API_BASE_URL}/api/register`, formData, {
     withCredentials: true,
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
   });
   return response;
 };
@@ -65,6 +62,22 @@ export const resetPassword = async (password, token) => {
 
 export const logOutFromServer =async () => {
   const response = await axios.post(`${API_BASE_URL}/api/logout`, {}, {
+    withCredentials: true,
+  });
+  return response;
+};
+
+
+export const updateProfileInfo = async (formData) => {
+ 
+  const response = await axios.put(`${API_BASE_URL}/api/user/update`, formData, {
+    withCredentials: true,
+  });
+  return response;
+};
+
+export const getCurrentUser = async () => {
+  const response = await axios.get(`${API_BASE_URL}/api/me`, {
     withCredentials: true,
   });
   return response;

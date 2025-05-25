@@ -18,7 +18,6 @@ export default function OAuthSuccess() {
           withCredentials: true, 
         });
         setUser(res.data);
-        console.log(res.data)
         sessionStorage.setItem("user", JSON.stringify(res.data));
         navigate("/");
       } catch (err) {

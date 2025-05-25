@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
@@ -43,5 +44,24 @@ public class AwsFileUpload {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR , "An error occured when uploading file...");
         }
         return null;
+    }
+
+    public void deleteFile(String fileUrl) {
+        try {
+            String key = extractKeyFromUrl(fileUrl);
+            DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+
+            s3Client.deleteObject(deleteRequest);
+        } catch (Exception e) {
+            System.out.println("Failed to delete file: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete previous image from S3.");
+        }
+    }
+
+    private String extractKeyFromUrl(String fileUrl) {
+        return fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
     }
 }

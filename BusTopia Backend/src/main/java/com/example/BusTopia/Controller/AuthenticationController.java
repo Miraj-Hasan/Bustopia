@@ -5,6 +5,7 @@ import com.example.BusTopia.DTOs.ForgotPassword.ForgotPasswordRequest;
 import com.example.BusTopia.DTOs.Register.CachedRegistration;
 import com.example.BusTopia.DTOs.Register.RegisterRequest;
 import com.example.BusTopia.DTOs.ResetPassword.ResetPasswordRequest;
+import com.example.BusTopia.DTOs.UpdateProfile.UpdateProfileDTO;
 import com.example.BusTopia.DatabaseEntity.PasswordResetEntity;
 import com.example.BusTopia.DatabaseEntity.UserEntity;
 import com.example.BusTopia.EmailService.EmailService;
@@ -35,6 +36,7 @@ import org.springframework.mock.web.MockMultipartFile;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -114,10 +116,10 @@ public class AuthenticationController {
                                   @RequestPart(value="file" , required = false) MultipartFile image) {
         try {
             RegisterRequest registerRequest = new ObjectMapper().readValue(userData, RegisterRequest.class);
-            byte[] imageBytes = image != null ? image.getBytes() : null;
+            byte[] imageBytes = (image != null && !image.isEmpty()) ? image.getBytes() : null;
             String code = tempRegistrationService.cacheRegistration(registerRequest, imageBytes);
 
-            String frontendBaseUrl = "http://localhost:3000/verify";
+            String frontendBaseUrl = "https://localhost:3000/verify";
 
             String verificationLink = frontendBaseUrl + "?code=" + code + "&email=" + URLEncoder.encode(registerRequest.getEmail(), StandardCharsets.UTF_8);
 
@@ -134,6 +136,7 @@ public class AuthenticationController {
             return ResponseEntity.ok("Verification email sent. Please verify within 5 minutes.");
 
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Registration failed: " + e.getMessage());
         }
     }
@@ -145,8 +148,14 @@ public class AuthenticationController {
             if (cached == null || !cached.getRegisterRequest().getEmail().equalsIgnoreCase(email)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or expired link.");
             }
-            userService.register(cached.getRegisterRequest(), new MockMultipartFile(
-                    "file", "image.jpg", "image/jpeg", cached.getImageBytes()));
+
+            MultipartFile imageFile = null;
+            byte[] imageBytes = cached.getImageBytes();
+            if (imageBytes != null && imageBytes.length > 0) {
+                imageFile = new MockMultipartFile("file", "image.jpg", "image/jpeg", imageBytes);
+            }
+
+            userService.register(cached.getRegisterRequest(), imageFile);
             tempRegistrationService.delete(code);
             return ResponseEntity.ok("Registration successful!");
         } catch (Exception e) {
@@ -202,11 +211,10 @@ public class AuthenticationController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(@CookieValue(name = "jwt", required = false) String token) {
+    public ResponseEntity<?> getCurrentUser(@CookieValue(name = "jwt", required = true) String token) {
         if (token == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No JWT cookie found.");
         }
-
         String email = jwtUtility.extractUserName(token);
 
         if (email == null) {
@@ -220,7 +228,7 @@ public class AuthenticationController {
 
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("email", user.getEmail());
-        userMap.put("username", user.getUsername());
+        userMap.put("username", user.getName());
         userMap.put("role", user.getRole());
         userMap.put("gender", user.getGender());
         userMap.put("phone", user.getPhone());
@@ -245,6 +253,39 @@ public class AuthenticationController {
 
         return ResponseEntity.ok("Logged out successfully");
     }
+
+    @PutMapping("/user/update")
+    public ResponseEntity<?> updateUserInfo(
+            @RequestPart("user") String userJson,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            Principal principal) {
+        try {
+
+
+            ObjectMapper mapper = new ObjectMapper();
+            UpdateProfileDTO updateRequest = mapper.readValue(userJson, UpdateProfileDTO.class);
+
+            String email = principal.getName();
+
+            UserEntity updatedUser = userService.updateUserProfile(email, updateRequest, file);
+
+            Map<String, Object> userMap = new HashMap<>();
+            userMap.put("email", updatedUser.getEmail());
+            userMap.put("username", updatedUser.getName());
+            userMap.put("role", updatedUser.getRole());
+            userMap.put("gender", updatedUser.getGender());
+            userMap.put("phone", updatedUser.getPhone());
+            userMap.put("imageUrl", updatedUser.getImageUrl());
+
+            return ResponseEntity.ok(userMap);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Profile update failed: " + e.getMessage());
+        }
+    }
+
 
     @GetMapping("/ping")
     public ResponseEntity<?> pingMe(){

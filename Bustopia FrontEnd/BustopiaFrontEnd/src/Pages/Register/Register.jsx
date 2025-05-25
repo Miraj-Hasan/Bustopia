@@ -34,10 +34,9 @@ function Register() {
     try {
       const formData = new FormData();
       formData.append("user", JSON.stringify(userData));
-      formData.append(
-        "file",
-        imageFile ?? new Blob([], { type: "application/octet-stream" })
-      );
+      if (imageFile) {
+        formData.append("file", imageFile);
+      }
 
       const response = await register(formData);
       if (response.status === 200) {

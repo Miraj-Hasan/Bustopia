@@ -58,7 +58,7 @@ public class SecurityConfiguration {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(FRONTEND_ORIGIN));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -95,12 +95,13 @@ public class SecurityConfiguration {
                                         "/api/forgot-password",
                                         "/api/reset-password/*",
                                         "/api/ping",
-                                        "/api/me",
+
                                         "/test/redis-health",
                                         "/test/s3-health",
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
+
                                         "/api/logout").permitAll()
                                 .anyRequest().authenticated()
                         )

@@ -15,10 +15,10 @@ public class CachedRegistration implements Serializable {
 
     public CachedRegistration(RegisterRequest registerRequest, byte[] imageBytes) {
         this.registerRequest = registerRequest;
-        this.imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
+        this.imageBase64 = (imageBytes != null) ? Base64.getEncoder().encodeToString(imageBytes) : null;
     }
 
     public byte[] getImageBytes() {
-        return Base64.getDecoder().decode(imageBase64);
+        return (imageBase64 != null) ? Base64.getDecoder().decode(imageBase64) : null;
     }
 }

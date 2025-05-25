@@ -75,5 +75,8 @@ public class UserEntity implements UserDetails {
         return true;
     }
 
+    public String getName(){return userName ;}
+
+    public void setName(String name) { this.userName = name ;}
 
 }

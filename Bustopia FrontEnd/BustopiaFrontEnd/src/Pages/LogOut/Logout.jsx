@@ -42,7 +42,7 @@ export function LogOut(){
           <Spinner animation="border" variant="danger" role="status" />
 
           <p className="text-muted mt-3">
-            Thank for joining <strong className="text-primary">EchoRoom</strong> community.
+            Thank for joining <strong className="text-primary">BusTopia</strong> community.
           </p>
         </div>
       </div>
