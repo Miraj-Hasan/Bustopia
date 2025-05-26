@@ -31,6 +31,7 @@ export function Profile() {
   }, [user]);
 
   useEffect(() => {
+    //console.log(user)
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
@@ -79,7 +80,7 @@ export function Profile() {
     }
   };
 
-  const effectiveImage = previewUrl || user?.imageUrl || defaultProfileImage;
+  const effectiveImage = previewUrl || user?.image || defaultProfileImage;
 
 return (
   <div className="d-flex">
