@@ -11,10 +11,9 @@ export function UserNavbar({name}) {
       {/* Logo + Title */}
       <Link
         to="/"
-        className="mb-1 ms-3 d-flex align-items-center text-white text-decoration-none"
+        className="mb-1 ms-3 d-flex align-items-center justify-content-center text-white text-decoration-none"
       >
-        <img src={assets.logo} alt="Logo" height="30" className="me-2" />
-        <span className="fs-5 fw-bold">BusTopia</span>
+        <img src={assets.logo} alt="Logo" height="164" className="me-2" />
       </Link>
 
       <hr />

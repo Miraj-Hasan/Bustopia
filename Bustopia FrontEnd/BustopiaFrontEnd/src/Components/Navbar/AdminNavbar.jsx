@@ -11,10 +11,10 @@ export function AdminNavbar({name}) {
       {/* Logo + Admin Title */}
       <Link
         to="/admin"
-        className="mb-1 d-flex align-items-center text-white text-decoration-none"
+        className="mb-1 d-flex align-items-center justify-content-center text-white text-decoration-none"
       >
-        <img src={assets.logo} alt="Logo" height="30" className="me-2" />
-        <span className="fs-5 fw-bold">Admin Panel</span>
+        <img src={assets.logo} alt="Logo" height="164" className="me-2" />
+        
       </Link>
 
       <hr />

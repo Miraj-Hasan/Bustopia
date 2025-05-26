@@ -51,25 +51,22 @@ function Register() {
   };
 
   return (
-    <section className="vh-100" style={{ backgroundColor: "#9A616D" }}>
+    <section style={{ minHeight: "100vh", backgroundColor: "#6C8EBF" }}>
       <div className="container py-5 h-100">
         <div className="row d-flex justify-content-center align-items-center h-100">
           <div className="col-md-10 col-lg-8 col-xl-6">
             <div className="card shadow" style={{ borderRadius: "1rem" }}>
-              <div className="card-body p-4 p-lg-5 text-black">
+              <div className="card-body p-4 pt-lg-2 p-lg-5 text-black">
                 <form onSubmit={submitHandler}>
                   {/* Logo + Title */}
-                  <div className="text-center mb-5">
+                  <div className="text-center">
                     <img
                       src={assets.logo}
-                      height={48}
-                      width={48}
+                      height={264}
+                      width={264}
                       className="me-2"
                       alt="logo"
                     />
-                    <h3 className="fw-bold mb-0" style={{ color: "blue" }}>
-                      {title}
-                    </h3>
                   </div>
 
                   {/* Name */}

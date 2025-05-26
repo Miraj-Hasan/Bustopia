@@ -41,7 +41,7 @@ function Login() {
   }
 
   return (
-    <section className="vh-100" style={{ backgroundColor: "#6C8EBF" }}>
+    <section style={{ minHeight: "100vh", backgroundColor: "#6C8EBF" }}>
       <div className="container py-5 h-100">
         <div className="row d-flex justify-content-center align-items-center h-100">
           <div className="col col-xl-10">
@@ -51,7 +51,7 @@ function Login() {
                   <img
                     src={assets.login}
                     alt="login form"
-                    className="img-fluid"
+                    className="img-fluid h-100 w-100 border border-secondary"
                     style={{
                       borderRadius: "1rem 0 0 1rem",
                       height: "600px",
@@ -60,21 +60,16 @@ function Login() {
                   />
                 </div>
                 <div className="col-md-6 col-lg-7 d-flex align-items-center">
-                  <div className="card-body p-4 p-lg-5 text-black">
+                  <div className="card-body p-4 pt-lg-2 p-lg-5 text-black">
                     <form onSubmit={submitHandler}>
-                      <div className="d-flex align-items-center mb-4 pb-1">
+                      <div className="d-flex align-items-center justify-content-center pb-1">
                         <img
                           src={assets.logo}
-                          height={48}
-                          width={48}
+                          height={264}
+                          width={264}
                           className="me-2"
                         />
-                        <span
-                          className="h3 fw-bold mb-0"
-                          style={{ color: "blue" }}
-                        >
-                          {title}
-                        </span>
+
                       </div>
 
                       <div className="form-outline mb-4">
@@ -138,7 +133,7 @@ function Login() {
                       <div className="medium text-center">
                         <Link
                           to="/forgot-password"
-                          style={{ color: "#393f81" }}
+                          style={{ color:"rgb(239, 49, 49)" }}
                         >
                           Forgot password?
                         </Link>
@@ -148,7 +143,7 @@ function Login() {
                         style={{ color: "#393f81" }}
                       >
                         Don't have an account?{" "}
-                        <Link to="/register" style={{ color: "#393f81" }}>
+                        <Link to="/register" style={{ color:"rgb(4, 0, 255)" }}>
                           Register here
                         </Link>
                       </p>
