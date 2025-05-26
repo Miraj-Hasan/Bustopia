@@ -70,7 +70,7 @@ export function Profile() {
         const updatedUser = res.data;
         setUser(updatedUser);
         sessionStorage.setItem("user", JSON.stringify(updatedUser));
-        setPreviewUrl(null);
+        //setPreviewUrl(null);
       }
     } catch (e) {
       toast.error("Profile update failed.");
