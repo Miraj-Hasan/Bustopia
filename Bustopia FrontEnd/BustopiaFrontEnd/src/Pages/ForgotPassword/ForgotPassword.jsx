@@ -25,7 +25,7 @@ function ForgotPassword() {
   }
 
   return (
-    <section className="vh-100" style={{ backgroundColor: "#9A616D" }}>
+    <section className="vh-100" style={{ backgroundColor: "#9A616D" }}> 
       <div className="container py-5 h-100">
         <div className="row d-flex justify-content-center align-items-center h-100">
           <div className="col-md-10 col-lg-8 col-xl-6">
