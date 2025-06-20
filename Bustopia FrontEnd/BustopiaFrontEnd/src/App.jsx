@@ -10,6 +10,7 @@ import { Profile } from './Pages/Profile/Profile';
 import Register from './Pages/Register/Register';
 import ResetPassword from './Pages/ResetPassword/ResetPassword';
 import Verify from './Pages/VerifyEmail/Verify';
+import Review from './Pages/Review/Review';
 
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/oauth-success" element={<OAuthSuccess />} />
+        <Route path="/review" element={<Review />} />
 
         <Route path="*" element={<h1>Balchal dio na guru</h1>} />
       </Routes>

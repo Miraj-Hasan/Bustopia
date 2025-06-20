@@ -1,0 +1,14 @@
+package com.example.BusTopia.MySqlRepositories;
+
+import com.example.BusTopia.DatabaseEntity.Bus;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+
+public interface BusRepository extends JpaRepository<Bus, Integer> {
+
+    @Query("SELECT DISTINCT b.companyName FROM Bus b")
+    List<String> findDistinctCompanyNames();
+
+}
