@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { verifyEmailLink } from "../../api/ApiCalls";
+import { verifyEmailLink } from "../../Api/ApiCalls";
 
 function Verify() {
   const [status, setStatus] = useState("verifying"); // "verifying" | "success" | "error"

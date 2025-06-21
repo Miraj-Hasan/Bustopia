@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import assets from "../../assets/assets";
-import { register } from "../../api/ApiCalls";
+import { register } from "../../Api/ApiCalls";
 
 function Register() {
   const title = import.meta.env.VITE_COMPANY_TITLE;

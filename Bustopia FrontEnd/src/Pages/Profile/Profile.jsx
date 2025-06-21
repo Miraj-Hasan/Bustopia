@@ -3,7 +3,7 @@ import { UserContext } from "../../Context/UserContext";
 import { Navbar } from "../../Components/Navbar/Navbar";
 import defaultProfileImage from "../../assets/default_profile.png";
 import { toast } from "react-toastify";
-import { updateProfileInfo } from "../../api/ApiCalls";
+import { updateProfileInfo } from "../../Api/ApiCalls";
 
 export function Profile() {
   const { user, setUser } = useContext(UserContext);
