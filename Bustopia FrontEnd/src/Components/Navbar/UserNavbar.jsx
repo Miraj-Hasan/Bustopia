@@ -25,6 +25,11 @@ export function UserNavbar({name}) {
             <i className="fas fa-user-circle me-2"></i> Profile
           </Link>
         </li>
+        <li>
+          <Link to="/review" className="nav-link text-white hover-effect">
+            <i className="fas fa-user-circle me-2"></i> Review
+          </Link>
+        </li>
         <li className="mt-1">
           <Link to="/logout" className="nav-link text-danger hover-effect">
             <i className="fas fa-sign-out-alt me-2"></i> Logout

@@ -6,10 +6,10 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const login = async (loginData) => {
 
-    const response = await axios.post(`${API_BASE_URL}/api/login`, loginData, {
-      withCredentials: true,                
-    });
-    return response;
+  const response = await axios.post(`${API_BASE_URL}/api/login`, loginData, {
+    withCredentials: true,
+  });
+  return response;
 };
 
 export const register = async (formData) => {
@@ -27,7 +27,7 @@ export const verifyEmailLink = async (code, email) => {
       withCredentials: true,
     }
   );
-  return response; 
+  return response;
 };
 
 
@@ -60,7 +60,7 @@ export const resetPassword = async (password, token) => {
   return response;
 };
 
-export const logOutFromServer =async () => {
+export const logOutFromServer = async () => {
   const response = await axios.post(`${API_BASE_URL}/api/logout`, {}, {
     withCredentials: true,
   });
@@ -69,7 +69,7 @@ export const logOutFromServer =async () => {
 
 
 export const updateProfileInfo = async (formData) => {
- 
+
   const response = await axios.put(`${API_BASE_URL}/api/user/update`, formData, {
     withCredentials: true,
   });
@@ -82,3 +82,19 @@ export const getCurrentUser = async () => {
   });
   return response;
 };
+
+
+export const getAllCompanies = async () => {
+  const response = await axios.get(`${API_BASE_URL}/api/getAllCompanies`, {
+    withCredentials: true,
+  });
+  return response;
+}
+
+export const getSpecificBus = async (license) => {
+  const response = await axios.get(`${API_BASE_URL}/api/getBusReviews`, {
+    params: { licenseNo: license }, 
+    withCredentials: true,
+  });
+  return response;
+}
