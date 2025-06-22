@@ -78,7 +78,7 @@ function Login() {
                           htmlFor="email"
                           style={{ color: "blue" }}
                         >
-                          Email address
+                          Fihad address
                         </label>
                         <input
                           type="email"
