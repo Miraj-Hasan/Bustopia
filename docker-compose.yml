@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  backend:
+    image: fiihad/bustopia-backend:latest
+    container_name: bustopia-backend
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    networks:
+      - bustopia-network
+    env_file:
+      - .env
+    environment:
+      - SPRING_DATASOURCE_URL=${DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASS}
+      - SPRING_REDIS_HOST=${REDIS_HOST}
+      - SPRING_REDIS_PORT=${REDIS_PORT}
+      - SPRING_REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    restart: unless-stopped
+
+  frontend:
+    image: fiihad/bustopia-frontend:latest
+    container_name: bustopia-frontend
+    ports:
+      - "3001:80"
+      - "3000:443"
+    depends_on:
+      - backend
+    networks:
+      - bustopia-network
+    restart: unless-stopped
+
+networks:
+  bustopia-network:
+    driver: bridge

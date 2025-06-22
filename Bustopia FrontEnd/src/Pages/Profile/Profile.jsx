@@ -3,7 +3,7 @@ import { UserContext } from "../../Context/UserContext";
 import { Navbar } from "../../Components/Navbar/Navbar";
 import defaultProfileImage from "../../assets/default_profile.png";
 import { toast } from "react-toastify";
-import { updateProfileInfo } from "../../Api/ApiCalls";
+import { updateProfileInfo , getCurrentUser } from "../../Api/ApiCalls";
 
 export function Profile() {
   const { user, setUser } = useContext(UserContext);
@@ -18,17 +18,42 @@ export function Profile() {
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false); // 🔄 spinner loading state
+  const [currentImageUrl, setCurrentImageUrl] = useState(null);
 
+  
   useEffect(() => {
-    if (user?.email) {
-      setFormData({
-        username: user.username || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        gender: user.gender || "",
-      });
-    }
-  }, [user]);
+    const fetchUser = async () => {
+      try {
+        const res = await getCurrentUser();
+        if (res.status === 200) {
+          const freshUser = res.data;
+
+          // Optional: update global context and sessionStorage
+          setUser(freshUser);
+          sessionStorage.setItem("user", JSON.stringify(freshUser));
+
+          // Update form with latest info
+          setFormData({
+            username: freshUser.username || "",
+            email: freshUser.email || "",
+            phone: freshUser.phone || "",
+            gender: freshUser.gender || "",
+          });
+
+          // ⬇️ Force image reload to avoid stale browser cache
+          setCurrentImageUrl(
+            freshUser.image ? `${freshUser.image}?t=${Date.now()}` : null
+          );
+        }
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+        toast.error("Failed to load profile info.");
+      }
+    };
+
+    fetchUser();
+  }, []);
+
 
   useEffect(() => {
     //console.log(user)
@@ -80,7 +105,7 @@ export function Profile() {
     }
   };
 
-  const effectiveImage = previewUrl || user?.image || defaultProfileImage;
+  const effectiveImage = previewUrl || currentImageUrl || defaultProfileImage;
 
 return (
   <div className="d-flex">
