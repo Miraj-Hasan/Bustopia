@@ -78,7 +78,7 @@ function Login() {
                           htmlFor="email"
                           style={{ color: "blue" }}
                         >
-                          Fihad address
+                          Onnokichu address
                         </label>
                         <input
                           type="email"
