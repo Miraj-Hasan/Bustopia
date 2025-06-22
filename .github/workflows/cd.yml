@@ -1,0 +1,24 @@
+name: Deploy to VM
+
+on:
+  workflow_run:
+    workflows: ["Bustopia CI"] # use the exact name of your CI workflow (from ci.yml)
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VM_SSH_KEY }}
+
+      - name: Deploy on VM
+        run: |
+          ssh -o StrictHostKeyChecking=no seed@172.167.170.46 "bash ~/SWE/Bustopia/deploy.sh"
