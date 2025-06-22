@@ -78,7 +78,7 @@ function Login() {
                           htmlFor="email"
                           style={{ color: "blue" }}
                         >
-                          Onnokichu 2 address
+                          Email address
                         </label>
                         <input
                           type="email"
