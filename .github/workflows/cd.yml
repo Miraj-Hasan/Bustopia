@@ -1,9 +1,10 @@
 name: Deploy to VM
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Bustopia CI"] # use the exact name of your CI workflow (from ci.yml)
+    types:
+      - completed
 
 jobs:
   deploy:
