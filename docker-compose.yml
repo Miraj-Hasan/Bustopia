@@ -8,6 +8,7 @@ services:
     container_name: bustopia-backend
     ports:
       - "8080:8080"
+      - "8443:8443"
     networks:
       - bustopia-network
     env_file:
