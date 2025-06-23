@@ -13,108 +13,105 @@ env:
 
 jobs:
 # ──────────────────────────────────────────────
-# 1. Backend unit tests  (Maven)
+# 2. BUILD IMAGES (no push yet)
 # ──────────────────────────────────────────────
-  backend-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+build-images:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - uses: docker/setup-buildx-action@v3
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"         # change if you use 17/11/8
+    - name: Build backend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./BusTopia Backend
+        push: false
+        tags: ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
 
-      - name: Cache Maven repo
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-
-      - name: Run Maven tests
-        working-directory: "BusTopia Backend"
-        run: mvn -B test
+    - name: Build frontend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./Bustopia FrontEnd
+        push: false
+        tags: ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
 
 # ──────────────────────────────────────────────
-# 2. Build images (no push yet)
+# 3. INTEGRATION TESTS (backend ↔ Postgres, frontend)
 # ──────────────────────────────────────────────
-  build-images:
-    needs: backend-tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
+integration-tests:
+  needs: build-images
+  runs-on: ubuntu-latest
 
-      - name: Build backend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./BusTopia Backend
-          push: false                  # build only
-          tags: ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+  services:
+    postgres:
+      image: postgres:16
+      env:
+        POSTGRES_DB: bustopia
+        POSTGRES_USER: ciuser
+        POSTGRES_PASSWORD: cipass
+      ports:
+        - 5432:5432
+      options: >-
+        --health-cmd="pg_isready -U ciuser -d bustopia"
+        --health-interval=10s
+        --health-timeout=5s
+        --health-retries=5
 
-      - name: Build frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./Bustopia FrontEnd
-          push: false
-          tags: ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+  steps:
+    - name: Start backend container
+      env:
+        DB_URL: jdbc:postgresql://host.docker.internal:5432/bustopia
+        DB_USER: ciuser
+        DB_PASS: cipass
+      run: |
+        docker run -d --name backend -p 8080:8080 \
+          -e SPRING_DATASOURCE_URL=$DB_URL \
+          -e SPRING_DATASOURCE_USERNAME=$DB_USER \
+          -e SPRING_DATASOURCE_PASSWORD=$DB_PASS \
+          ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+
+        echo "Waiting for backend to become healthy…"
+        for i in {1..20}; do
+          if curl --silent http://localhost:8080/api/ping; then exit 0; fi
+          sleep 3
+        done
+        echo "❌ Backend ping failed"; docker logs backend; exit 1
+
+    - name: Start frontend container
+      run: |
+        docker run -d --name frontend -p 3001:80 \
+          ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+
+        curl --fail --retry 5 --retry-delay 3 http://localhost:3001/
+
+    - name: Clean up
+      if: always()
+      run: docker rm -f backend frontend
 
 # ──────────────────────────────────────────────
-# 3. Integration smoke-tests using those images
+# 4. PUSH IMAGES (only if ALL tests passed)
 # ──────────────────────────────────────────────
-  integration-tests:
-    needs: build-images
-    runs-on: ubuntu-latest
-    steps:
-      - name: Start backend container
-        run: |
-          docker run -d --name backend -p 8080:8080 \
-            ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
-          # wait up to 30 s for Spring to boot
-          for i in {1..15}; do
-            if curl --silent http://localhost:8080/api/ping; then exit 0; fi
-            sleep 2
-          done
-          echo "Backend ping failed"; docker logs backend; exit 1
+push-images:
+  needs: integration-tests
+  runs-on: ubuntu-latest
+  permissions:
+    contents: read
+    packages: write
 
-      - name: Start frontend container
-        run: |
-          docker run -d --name frontend -p 3001:80 \
-            ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
-          # very light homepage check
-          curl --fail --retry 5 --retry-delay 3 http://localhost:3001/
+  steps:
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Clean up
-        if: always()
-        run: docker rm -f backend frontend
+    - name: Tag & push backend
+      run: |
+        docker tag ${{ env.IMAGE_BACKEND }}:${{ github.sha }} ${{ env.IMAGE_BACKEND }}:latest
+        docker push --all-tags ${{ env.IMAGE_BACKEND }}
 
-# ──────────────────────────────────────────────
-# 4. Push images to Docker Hub (only if all tests passed)
-# ──────────────────────────────────────────────
-  push-images:
-    needs: integration-tests
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Push backend + latest tag
-        run: |
-          docker tag ${{ env.IMAGE_BACKEND }}:${{ github.sha }} \
-                     ${{ env.IMAGE_BACKEND }}:latest
-          docker push --all-tags ${{ env.IMAGE_BACKEND }}
-
-      - name: Push frontend + latest tag
-        run: |
-          docker tag ${{ env.IMAGE_FRONTEND }}:${{ github.sha }} \
-                     ${{ env.IMAGE_FRONTEND }}:latest
-          docker push --all-tags ${{ env.IMAGE_FRONTEND }}
+    - name: Tag & push frontend
+      run: |
+        docker tag ${{ env.IMAGE_FRONTEND }}:${{ github.sha }} ${{ env.IMAGE_FRONTEND }}:latest
+        docker push --all-tags ${{ env.IMAGE_FRONTEND }}
