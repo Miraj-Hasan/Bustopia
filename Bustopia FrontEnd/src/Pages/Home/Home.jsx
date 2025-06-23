@@ -22,8 +22,10 @@ export function Home() {
     };
 
     return (
-        <div>
-            <Navbar />
+        <div className="d-flex">
+            <div style={{ width: "250px" }}>
+                <Navbar />
+            </div>
             <div style={{ maxWidth: 320, margin: "20px auto", textAlign: "center", position: "relative" }}>
                 <h2>Available Buses</h2>
                 <div style={{ position: "relative" }}>
