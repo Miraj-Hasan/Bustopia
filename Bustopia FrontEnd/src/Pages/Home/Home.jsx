@@ -3,7 +3,7 @@ import { Navbar } from "../../Components/Navbar/Navbar";
 import { UserContext } from "../../Context/UserContext";
 
 const dummyBuses = [
-    { id: 1, name: "Express Bus", image: "https://images-prod.gothamist.com/original_images/51968520227_d551c2351b_o.jpg" },
+    { id: 1, name: "The Express", image: "https://images-prod.gothamist.com/original_images/51968520227_d551c2351b_o.jpg" },
     { id: 2, name: "City Shuttle", image: "https://nypost.com/wp-content/uploads/sites/2/2018/09/180901-mta-bus-shuttle.jpg?quality=75&strip=all" },
     { id: 3, name: "Intercity Coach", image: "https://www.freeiconspng.com/uploads/bus-png-1.png" },
     { id: 4, name: "Luxury Liner", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDXhfsGrPfeEBtyhrvEXuXPgXQJm7tD_dvM_N5q8k_WlBuDJSq2FqI9UrWnu5KxkGM2vQ&usqp=CAU" },
