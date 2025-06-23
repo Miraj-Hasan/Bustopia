@@ -50,48 +50,21 @@ jobs:
           cache-from: type=registry,ref=${{ env.IMAGE_FRONTEND }}:buildcache
           cache-to: type=registry,ref=${{ env.IMAGE_FRONTEND }}:buildcache,mode=max
 
-  test-backend:
+  test-frontend:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Pull backend image
-        run: docker pull ${{ env.IMAGE_BACKEND }}:latest
+      - uses: actions/checkout@v4
 
-      - name: Run backend tests inside container
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          DB_URL: ${{ secrets.DB_URL }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASS: ${{ secrets.DB_PASS }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
-        run: |
-          docker run --rm \
-            -e JWT_SECRET="$JWT_SECRET" \
-            -e DB_URL="$DB_URL" \
-            -e DB_USER="$DB_USER" \
-            -e DB_PASS="$DB_PASS" \
-            -e REDIS_HOST="$REDIS_HOST" \
-            -e REDIS_PORT="$REDIS_PORT" \
-            -e REDIS_PASSWORD="$REDIS_PASSWORD" \
-            -e AWS_ACCESS_KEY="$AWS_ACCESS_KEY" \
-            -e AWS_SECRET_KEY="$AWS_SECRET_KEY" \
-            -e AWS_REGION="$AWS_REGION" \
-            -e AWS_BUCKET_NAME="$AWS_BUCKET_NAME" \
-            -e MAIL_USERNAME="$MAIL_USERNAME" \
-            -e MAIL_PASSWORD="$MAIL_PASSWORD" \
-            -e GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \
-            -e GOOGLE_CLIENT_SECRET="$GOOGLE_CLIENT_SECRET" \
-            -e GOOGLE_REDIRECT_URI="$GOOGLE_REDIRECT_URI" \
-            ${{ env.IMAGE_BACKEND }}:latest \
-            mvn test
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        working-directory: ./Bustopia FrontEnd
+        run: npm install
+
+      - name: Run frontend tests
+        working-directory: ./Bustopia FrontEnd
+        run: npm test -- --ci --reporters=default
