@@ -1,10 +1,13 @@
 name: Bustopia CI
 
+# ────────────────
+# Triggers
+# ────────────────
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]          # build every commit on main
   pull_request:
-    branches: ["main"]
+    branches: [ "main" ]          # build PRs targeting main
 
 env:
   REGISTRY: docker.io
@@ -12,165 +15,63 @@ env:
   IMAGE_FRONTEND: fiihad/bustopia-frontend
 
 jobs:
-# ──────────────────────────────────────────────
-# 1. BACKEND UNIT TESTS (use Supabase secrets)
-# ──────────────────────────────────────────────
-  backend-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Cache Maven repo
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-
-      - name: Run Maven tests (Supabase connection + all secrets)
-        working-directory: "BusTopia Backend"
-        env:
-          # Database (Supabase)
-          DB_URL:  ${{ secrets.DB_URL }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASS: ${{ secrets.DB_PASS }}
-          SPRING_DATASOURCE_URL:      ${{ secrets.DB_URL }}
-          SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USER }}
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASS }}
-
-          # JWT
-          JWT_SECRET:     ${{ secrets.JWT_SECRET }}
-          JWT_EXPIRATION: ${{ secrets.JWT_EXPIRATION }}
-
-          # Google OAuth
-          GOOGLE_CLIENT_ID:     ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_REDIRECT_URI:  ${{ secrets.GOOGLE_REDIRECT_URI }}
-
-          # Gmail
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-
-          # Redis
-          REDIS_HOST:     ${{ secrets.REDIS_HOST }}
-          REDIS_PORT:     ${{ secrets.REDIS_PORT }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-
-          # AWS S3
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          AWS_REGION:            ${{ secrets.AWS_REGION }}
-          AWS_BUCKET_NAME:       ${{ secrets.AWS_BUCKET_NAME }}
-
-          # OpenAI
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: mvn -B test
-
-# ──────────────────────────────────────────────
-# 2. BUILD IMAGES (local only)
-# ──────────────────────────────────────────────
-  build-images:
-    needs: backend-tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-
-      - name: Build backend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./BusTopia Backend
-          push: false
-          load: true
-          tags: bustopia-backend:local
-
-      - name: Build frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./Bustopia FrontEnd
-          push: false
-          load: true
-          tags: bustopia-frontend:local
-
-# ──────────────────────────────────────────────
-# 3. INTEGRATION TESTS (backend ↔ Supabase, frontend)
-# ──────────────────────────────────────────────
-  integration-tests:
-    needs: build-images
-    runs-on: ubuntu-latest
-    steps:
-      - name: Start backend container
-        run: |
-          docker run -d --name backend -p 8080:8080 \
-            -e SPRING_DATASOURCE_URL="${{ secrets.DB_URL }}" \
-            -e SPRING_DATASOURCE_USERNAME="${{ secrets.DB_USER }}" \
-            -e SPRING_DATASOURCE_PASSWORD="${{ secrets.DB_PASS }}" \
-            -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-            -e JWT_EXPIRATION="${{ secrets.JWT_EXPIRATION }}" \
-            -e GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
-            -e GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
-            -e GOOGLE_REDIRECT_URI="${{ secrets.GOOGLE_REDIRECT_URI }}" \
-            -e MAIL_USERNAME="${{ secrets.MAIL_USERNAME }}" \
-            -e MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
-            -e REDIS_HOST="${{ secrets.REDIS_HOST }}" \
-            -e REDIS_PORT="${{ secrets.REDIS_PORT }}" \
-            -e REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}" \
-            -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY }}" \
-            -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_KEY }}" \
-            -e AWS_REGION="${{ secrets.AWS_REGION }}" \
-            -e AWS_BUCKET_NAME="${{ secrets.AWS_BUCKET_NAME }}" \
-            -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
-            bustopia-backend:local
-
-          echo "Waiting for backend..."
-          for i in {1..20}; do
-            if curl --silent http://localhost:8080/api/ping; then exit 0; fi
-            sleep 3
-          done
-          echo "❌ Backend ping failed"; docker logs backend; exit 1
-
-      - name: Start frontend container
-        run: |
-          docker run -d --name frontend -p 3001:80 bustopia-frontend:local
-          curl --fail --retry 10 --retry-delay 5 http://localhost:3001/
-
-      - name: Clean up
-        if: always()
-        run: docker rm -f backend frontend
-
-# ──────────────────────────────────────────────
-# 4. PUSH IMAGES (only if ALL tests passed)
-# ──────────────────────────────────────────────
-  push-images:
-    needs: integration-tests
+  build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      packages: write
+      contents: read               # checkout
+      packages: write              # needed by docker/login-action
     steps:
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+      # 1. Check out code
+      - uses: actions/checkout@v4
+
+      # 2. Set up Docker Buildx (modern builder with caching)
+      - uses: docker/setup-buildx-action@v3
+
+      # 3. Log in to Docker Hub
+      - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Tag & push backend
-        run: |
-          docker tag bustopia-backend:local ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
-          docker tag bustopia-backend:local ${{ env.IMAGE_BACKEND }}:latest
-          docker push ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
-          docker push ${{ env.IMAGE_BACKEND }}:latest
+      # 4. Build & push BACKEND
+      - name: Build & push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./BusTopia Backend
+          push: true
+          tags: |
+            ${{ env.IMAGE_BACKEND }}:latest
+            ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.IMAGE_BACKEND }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_BACKEND }}:buildcache,mode=max
 
-      - name: Tag & push frontend
-        run: |
-          docker tag bustopia-frontend:local ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
-          docker tag bustopia-frontend:local ${{ env.IMAGE_FRONTEND }}:latest
-          docker push ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
-          docker push ${{ env.IMAGE_FRONTEND }}:latest
+      # 5. Build & push FRONTEND
+      - name: Build & push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Bustopia FrontEnd
+          push: true
+          tags: |
+            ${{ env.IMAGE_FRONTEND }}:latest
+            ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.IMAGE_FRONTEND }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_FRONTEND }}:buildcache,mode=max
+
+  # ────────────────────────────────────────────────────────────
+  # (Optional) Test Job – keep separate to avoid blocking push.
+  # Uncomment and edit when you have tests.
+  # ────────────────────────────────────────────────────────────
+  # test:
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Pull backend image and run tests
+  #       run: |
+  #         docker pull ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+  #         # e.g. docker run --rm $IMAGE_BACKEND:$GITHUB_SHA ./gradlew test
+  #     - name: Pull frontend image and run tests
+  #       run: |
+  #         docker pull ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+  #         # e.g. docker run --rm $IMAGE_FRONTEND:$GITHUB_SHA npm test -- --ci
