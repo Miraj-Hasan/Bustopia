@@ -12,36 +12,8 @@ env:
   IMAGE_FRONTEND: fiihad/bustopia-frontend
 
 jobs:
-  # ──────────────────────────────────────────────
-  # 2. BUILD IMAGES (no push yet)
-  # ──────────────────────────────────────────────
-  build-images:
+  build-test-push:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-
-      - name: Build backend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./BusTopia Backend
-          push: false
-          tags: ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
-
-      - name: Build frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./Bustopia FrontEnd
-          push: false
-          tags: ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
-
-  # ──────────────────────────────────────────────
-  # 3. INTEGRATION TESTS (backend ↔ Postgres, frontend)
-  # ──────────────────────────────────────────────
-  integration-tests:
-    needs: build-images
-    runs-on: ubuntu-latest
-
     services:
       postgres:
         image: postgres:16
@@ -49,6 +21,8 @@ jobs:
           POSTGRES_DB: bustopia
           POSTGRES_USER: ciuser
           POSTGRES_PASSWORD: cipass
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd="pg_isready -U ciuser -d bustopia"
           --health-interval=10s
@@ -56,7 +30,25 @@ jobs:
           --health-retries=5
 
     steps:
-      - name: Start backend container
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image locally
+        uses: docker/build-push-action@v5
+        with:
+          context: ./BusTopia Backend
+          push: false
+          tags: bustopia-backend:local
+
+      - name: Build frontend image locally
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Bustopia FrontEnd
+          push: false
+          tags: bustopia-frontend:local
+
+      - name: Run backend container and test
         env:
           DB_URL: jdbc:postgresql://host.docker.internal:5432/bustopia
           DB_USER: ciuser
@@ -66,37 +58,27 @@ jobs:
             -e SPRING_DATASOURCE_URL=$DB_URL \
             -e SPRING_DATASOURCE_USERNAME=$DB_USER \
             -e SPRING_DATASOURCE_PASSWORD=$DB_PASS \
-            ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+            bustopia-backend:local
 
-          echo "Waiting for backend to become healthy…"
+          echo "Waiting for backend to respond to /api/ping..."
           for i in {1..20}; do
             if curl --silent http://localhost:8080/api/ping; then exit 0; fi
             sleep 3
           done
-          echo "❌ Backend ping failed"; docker logs backend; exit 1
 
-      - name: Start frontend container
+          echo "❌ Backend ping failed"
+          docker logs backend
+          exit 1
+
+      - name: Run frontend container and test
         run: |
-          docker run -d --name frontend -p 3001:80 \
-            ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
-
+          docker run -d --name frontend -p 3001:80 bustopia-frontend:local
           curl --fail --retry 10 --retry-delay 5 http://localhost:3001/
 
-      - name: Clean up
+      - name: Cleanup containers
         if: always()
         run: docker rm -f backend frontend
 
-  # ──────────────────────────────────────────────
-  # 4. PUSH IMAGES (only if ALL tests passed)
-  # ──────────────────────────────────────────────
-  push-images:
-    needs: integration-tests
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -104,12 +86,16 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Tag & push backend
+      - name: Tag and push backend image
         run: |
-          docker tag ${{ env.IMAGE_BACKEND }}:${{ github.sha }} ${{ env.IMAGE_BACKEND }}:latest
-          docker push --all-tags ${{ env.IMAGE_BACKEND }}
+          docker tag bustopia-backend:local ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+          docker tag bustopia-backend:local ${{ env.IMAGE_BACKEND }}:latest
+          docker push ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+          docker push ${{ env.IMAGE_BACKEND }}:latest
 
-      - name: Tag & push frontend
+      - name: Tag and push frontend image
         run: |
-          docker tag ${{ env.IMAGE_FRONTEND }}:${{ github.sha }} ${{ env.IMAGE_FRONTEND }}:latest
-          docker push --all-tags ${{ env.IMAGE_FRONTEND }}
+          docker tag bustopia-frontend:local ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+          docker tag bustopia-frontend:local ${{ env.IMAGE_FRONTEND }}:latest
+          docker push ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+          docker push ${{ env.IMAGE_FRONTEND }}:latest
