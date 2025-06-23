@@ -119,7 +119,7 @@ public class AuthenticationController {
             byte[] imageBytes = (image != null && !image.isEmpty()) ? image.getBytes() : null;
             String code = tempRegistrationService.cacheRegistration(registerRequest, imageBytes);
 
-            String frontendBaseUrl = "https://localhost:3000/verify";
+            String frontendBaseUrl = FRONT_END + "/verify";
 
             String verificationLink = frontendBaseUrl + "?code=" + code + "&email=" + URLEncoder.encode(registerRequest.getEmail(), StandardCharsets.UTF_8);
 
