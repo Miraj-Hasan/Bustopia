@@ -3,10 +3,10 @@ import { Navbar } from "../../Components/Navbar/Navbar";
 import { UserContext } from "../../Context/UserContext";
 
 const dummyBuses = [
-    { id: 1, name: "Express Bus", image: "https://via.placeholder.com/300x150?text=Express+Bus" },
-    { id: 2, name: "City Shuttle", image: "https://via.placeholder.com/300x150?text=City+Shuttle" },
-    { id: 3, name: "Intercity Coach", image: "https://via.placeholder.com/300x150?text=Intercity+Coach" },
-    { id: 4, name: "Luxury Liner", image: "https://via.placeholder.com/300x150?text=Luxury+Liner" },
+    { id: 1, name: "Express Bus", image: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fstock.adobe.com%2Fsearch%3Fk%3Dbus&psig=AOvVaw2LG51SGyUTwBJHoZpYF1gh&ust=1750748793490000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCIi68-j9ho4DFQAAAAAdAAAAABAJ" },
+    { id: 2, name: "City Shuttle", image: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fstock.adobe.com%2Fsearch%3Fk%3Dbus&psig=AOvVaw2LG51SGyUTwBJHoZpYF1gh&ust=1750748793490000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCIi68-j9ho4DFQAAAAAdAAAAABAT" },
+    { id: 3, name: "Intercity Coach", image: "https://www.freepik.com/free-photo/traffic-vehicle-urban-reflections-city_1064229.htm#fromView=keyword&page=1&position=19&uuid=272a94a5-01a4-49fe-b575-8a9273427c91&query=Buses" },
+    { id: 4, name: "Luxury Liner", image: "https://www.vecteezy.com/photo/27298467-bus-in-the-street" },
 ];
 
 export function Home() {
