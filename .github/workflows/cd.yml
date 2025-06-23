@@ -2,23 +2,41 @@ name: Deploy to VM
 
 on:
   workflow_run:
-    workflows: ["Bustopia CI"] # use the exact name of your CI workflow (from ci.yml)
-    types:
-      - completed
+    workflows: ["Bustopia CI"]      # must match the `name:` in ci.yml
+    types: [ completed ]
 
 jobs:
   deploy:
+    # run only if the CI workflow succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up SSH
+      # Add the SSH key so we can connect
+      - name: Start SSH agent and add key
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.VM_SSH_KEY }}
 
+      # Run deploy script on the VM
       - name: Deploy on VM
         run: |
-          ssh -o StrictHostKeyChecking=no seed@172.167.170.46 "bash ~/SWE/Bustopia/deploy.sh"
+          ssh -o StrictHostKeyChecking=no seed@172.167.170.46 \
+              "bash ~/SWE/Bustopia/deploy.sh"
+
+      # Frontend basic test
+      - name: Verify frontend is up (homepage test)
+        run: |
+          echo "Waiting for frontend to start..."
+          sleep 10
+          curl -k --fail --retry 5 --retry-delay 5 https://172.167.170.46:3000/
+
+
+      # Smoke-test the running backend
+      - name: Verify backend is up (ping test)
+        run: |
+          echo "Waiting for backend to start…"
+          sleep 15                          # give the container a few seconds
+          # retry up to 5 times, 5-second gap, fail on non-2xx
+          curl -k --fail --retry 5 --retry-delay 5 \
+               https://172.167.170.46:8443/api/ping
