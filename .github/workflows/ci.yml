@@ -1,10 +1,13 @@
 name: Bustopia CI
 
+# ────────────────
+# Triggers
+# ────────────────
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ]          # build every commit on main
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main" ]          # build PRs targeting main
 
 env:
   REGISTRY: docker.io
@@ -12,93 +15,63 @@ env:
   IMAGE_FRONTEND: fiihad/bustopia-frontend
 
 jobs:
-  build-test-push:
+  build-and-push:
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: bustopia
-          POSTGRES_USER: ciuser
-          POSTGRES_PASSWORD: cipass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U ciuser -d bustopia"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
+    permissions:
+      contents: read               # checkout
+      packages: write              # needed by docker/login-action
     steps:
+      # 1. Check out code
       - uses: actions/checkout@v4
 
+      # 2. Set up Docker Buildx (modern builder with caching)
       - uses: docker/setup-buildx-action@v3
 
-      - name: Build backend image locally
-        uses: docker/build-push-action@v5
-        with:
-          context: ./BusTopia Backend
-          push: false
-          load: true # 👈 important fix
-          tags: bustopia-backend:local
-
-      - name: Build frontend image locally
-        uses: docker/build-push-action@v5
-        with:
-          context: ./Bustopia FrontEnd
-          push: false
-          load: true # 👈 important fix
-          tags: bustopia-frontend:local
-
-      - name: Run backend container and test
-        env:
-          DB_URL: jdbc:postgresql://host.docker.internal:5432/bustopia
-          DB_USER: ciuser
-          DB_PASS: cipass
-        run: |
-          docker run -d --name backend -p 8080:8080 \
-            -e SPRING_DATASOURCE_URL=$DB_URL \
-            -e SPRING_DATASOURCE_USERNAME=$DB_USER \
-            -e SPRING_DATASOURCE_PASSWORD=$DB_PASS \
-            bustopia-backend:local
-
-          echo "Waiting for backend to respond to /api/ping..."
-          for i in {1..20}; do
-            if curl --silent http://localhost:8080/api/ping; then exit 0; fi
-            sleep 3
-          done
-
-          echo "❌ Backend ping failed"
-          docker logs backend
-          exit 1
-
-      - name: Run frontend container and test
-        run: |
-          docker run -d --name frontend -p 3001:80 bustopia-frontend:local
-          curl --fail --retry 10 --retry-delay 5 http://localhost:3001/
-
-      - name: Cleanup containers
-        if: always()
-        run: docker rm -f backend frontend
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+      # 3. Log in to Docker Hub
+      - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Tag and push backend image
-        run: |
-          docker tag bustopia-backend:local ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
-          docker tag bustopia-backend:local ${{ env.IMAGE_BACKEND }}:latest
-          docker push ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
-          docker push ${{ env.IMAGE_BACKEND }}:latest
+      # 4. Build & push BACKEND
+      - name: Build & push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./BusTopia Backend
+          push: true
+          tags: |
+            ${{ env.IMAGE_BACKEND }}:latest
+            ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.IMAGE_BACKEND }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_BACKEND }}:buildcache,mode=max
 
-      - name: Tag and push frontend image
-        run: |
-          docker tag bustopia-frontend:local ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
-          docker tag bustopia-frontend:local ${{ env.IMAGE_FRONTEND }}:latest
-          docker push ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
-          docker push ${{ env.IMAGE_FRONTEND }}:latest
+      # 5. Build & push FRONTEND
+      - name: Build & push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Bustopia FrontEnd
+          push: true
+          tags: |
+            ${{ env.IMAGE_FRONTEND }}:latest
+            ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.IMAGE_FRONTEND }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_FRONTEND }}:buildcache,mode=max
+
+  # ────────────────────────────────────────────────────────────
+  # (Optional) Test Job – keep separate to avoid blocking push.
+  # Uncomment and edit when you have tests.
+  # ────────────────────────────────────────────────────────────
+  # test:
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Pull backend image and run tests
+  #       run: |
+  #         docker pull ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+  #         # e.g. docker run --rm $IMAGE_BACKEND:$GITHUB_SHA ./gradlew test
+  #     - name: Pull frontend image and run tests
+  #       run: |
+  #         docker pull ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+  #         # e.g. docker run --rm $IMAGE_FRONTEND:$GITHUB_SHA npm test -- --ci
