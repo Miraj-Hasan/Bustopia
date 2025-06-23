@@ -14,6 +14,7 @@ env:
 jobs:
   build-test-push:
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:16
@@ -39,6 +40,7 @@ jobs:
         with:
           context: ./BusTopia Backend
           push: false
+          load: true # 👈 important fix
           tags: bustopia-backend:local
 
       - name: Build frontend image locally
@@ -46,6 +48,7 @@ jobs:
         with:
           context: ./Bustopia FrontEnd
           push: false
+          load: true # 👈 important fix
           tags: bustopia-frontend:local
 
       - name: Run backend container and test
