@@ -228,11 +228,14 @@ function Review() {
                             {buses.map((bus, index) => (
                                 <div className="card mb-3">
                                     <img src="..." className="card-img-top" alt="..." />
-                                        <div className="card-body">
-                                            <h5 className="card-title">{bus.companyName}</h5>
-                                            <p className="card-text">{bus.licenseNo}</p>
-                                            <p className="card-text"><small className="text-body-secondary">{bus.route.stops}</small></p>
-                                        </div>
+                                    <div className="card-body">
+                                        <h5 className="card-title">{bus.companyName}</h5>
+                                        <p className="card-text">{bus.licenseNo}</p>
+                                        <p className="card-text">
+                                            <small className="text-body-secondary">
+                                                {bus.stops.join(" → ")}
+                                            </small></p>
+                                    </div>
                                 </div>
                             ))}
 

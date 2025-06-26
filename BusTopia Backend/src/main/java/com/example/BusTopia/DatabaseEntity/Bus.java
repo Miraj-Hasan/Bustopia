@@ -2,10 +2,12 @@ package com.example.BusTopia.DatabaseEntity;
 
 import io.lettuce.core.dynamic.annotation.CommandNaming;
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Data
 @Table(name = "Bus", uniqueConstraints = @UniqueConstraint(columnNames = "license_no"))
 public class Bus {
     @Id
