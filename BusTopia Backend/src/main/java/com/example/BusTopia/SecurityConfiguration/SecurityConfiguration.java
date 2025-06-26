@@ -95,7 +95,8 @@ public class SecurityConfiguration {
                                         "/api/forgot-password",
                                         "/api/reset-password/*",
                                         "/api/ping",
-
+                                        "/ai-assistant/health",
+                                        "/ai-assistant",                 //need to remove after testing
                                         "/test/redis-health",
                                         "/test/s3-health",
                                         "/v3/api-docs/**",
