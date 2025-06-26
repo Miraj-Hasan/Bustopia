@@ -1,4 +1,4 @@
-import { getAllCompanies, getSpecificBus } from "../../Api/ApiCalls";
+import { getAllCompanies, getSpecificBus, getSpecificCompanyBuses } from "../../Api/ApiCalls";
 import { Navbar } from "../../Components/Navbar/Navbar";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -12,6 +12,8 @@ function Review() {
     const [loading, setLoading] = useState(false);
     const [allCompanies, setAllCompanies] = useState([]);
     const [hasCompaniesFetched, setHasCompaniesFetched] = useState(false);
+    const [selectedCompanyBuses, setSelectedCompanyBuses] = useState([]);
+    const [buses, setBuses] = useState([]);
 
     async function getLicensedBus(e) {
         e.preventDefault();
@@ -27,6 +29,18 @@ function Review() {
             setLoading(false);
         }
     }
+
+    const handleCompanySelect = async (companyName) => {
+        try {
+            console.log("🔍 Selected company:", companyName);
+            const response = await getSpecificCompanyBuses(companyName);
+            setSelectedCompanyBuses(response.data);
+            setBuses(response.data);
+            console.log("✅ Received from backend:", response.data);
+        } catch (error) {
+            console.error("Error fetching bus data:", error);
+        }
+    };
 
     // Fetch once when "by company" is selected for the first time
     useEffect(() => {
@@ -186,7 +200,10 @@ function Review() {
                                             border: "1px solid #ccc",
                                             width: "250px",
                                             marginTop: "20px"
-                                        }}>
+                                        }}
+                                        defaultValue=""
+                                        onChange={(e) => handleCompanySelect(e.target.value)}
+                                    >
                                         <option value="" disabled>
                                             Select a bus company
                                         </option>
@@ -199,10 +216,33 @@ function Review() {
                                 )}
                             </div>
                         </div>
+
+
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                            }}
+                        >
+                            {buses.map((bus, index) => (
+                                <div className="card mb-3">
+                                    <img src="..." className="card-img-top" alt="..." />
+                                        <div className="card-body">
+                                            <h5 className="card-title">{bus.companyName}</h5>
+                                            <p className="card-text">{bus.licenseNo}</p>
+                                            <p className="card-text"><small className="text-body-secondary">{bus.route.stops}</small></p>
+                                        </div>
+                                </div>
+                            ))}
+
+
+                        </div>
+
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
 
     );
 }

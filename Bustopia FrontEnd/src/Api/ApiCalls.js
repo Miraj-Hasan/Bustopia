@@ -93,7 +93,15 @@ export const getAllCompanies = async () => {
 
 export const getSpecificBus = async (license) => {
   const response = await axios.get(`${API_BASE_URL}/api/getBusReviews`, {
-    params: { licenseNo: license }, 
+    params: { licenseNo: license },
+    withCredentials: true,
+  });
+  return response;
+}
+
+export const getSpecificCompanyBuses = async (companyName) => {
+  const response = await axios.get(`${API_BASE_URL}/api/getSpecificCompanyBuses`, {
+    params: { companyName: companyName }, 
     withCredentials: true,
   });
   return response;

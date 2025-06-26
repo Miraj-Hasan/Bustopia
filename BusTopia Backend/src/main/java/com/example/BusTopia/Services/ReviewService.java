@@ -1,5 +1,6 @@
 package com.example.BusTopia.Services;
 
+import com.example.BusTopia.DatabaseEntity.Bus;
 import com.example.BusTopia.MySqlRepositories.BusRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,10 @@ public class ReviewService {
 
     public List<String> getAllCompanyNames() {
         return busRepository.findDistinctCompanyNames();
+    }
+
+    public List<Bus> getAllBusesOfACompany(String companyName) {
+        return busRepository.findSpecificCompanyBus(companyName);
     }
 
 }

@@ -11,5 +11,8 @@ public class Route {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer routeId;
 
+    @ElementCollection
+    @CollectionTable(name = "route_stops", joinColumns = @JoinColumn(name = "route_id"))
+    @Column(name = "stop")
     private List<String> stops;
 }
