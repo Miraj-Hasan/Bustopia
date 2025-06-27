@@ -1,9 +1,11 @@
 package com.example.BusTopia.DatabaseEntity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.List;
 
+@Data
 @Entity
 @Table(name = "Review")
 public class Review {
@@ -22,4 +24,6 @@ public class Review {
     private Bus bus;
 
     private List<String> images;
+
+    private float stars;
 }

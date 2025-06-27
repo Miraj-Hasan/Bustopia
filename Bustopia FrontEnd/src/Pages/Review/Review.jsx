@@ -1,4 +1,4 @@
-import { getAllCompanies, getSpecificBus, getSpecificCompanyBuses } from "../../Api/ApiCalls";
+import { getAllCompanies, getReviewsByBusId, getSpecificBus, getSpecificCompanyBuses } from "../../Api/ApiCalls";
 import { Navbar } from "../../Components/Navbar/Navbar";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -14,14 +14,25 @@ function Review() {
     const [hasCompaniesFetched, setHasCompaniesFetched] = useState(false);
     const [selectedCompanyBuses, setSelectedCompanyBuses] = useState([]);
     const [buses, setBuses] = useState([]);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const [hoveredCardIndex, setHoveredCardIndex] = useState(null);
+    const [expandedCardIndex, setExpandedCardIndex] = useState(null);
+    const [reviews, setReviews] = useState({});
+    const [pagesNeeded, setPagesNeeded] = useState(true);
+    const size = 10;
 
     async function getLicensedBus(e) {
         e.preventDefault();
         setLoading(true);
         try {
             const response = await getSpecificBus(searchedLicense);
+            console.log("license: ", searchedLicense);
             if (response.status === 200) {
                 toast.success("found the bus!");
+                setBuses([response.data.bus]);
+                setReviews(prev => ({ ...prev, [response.data.bus.busId]: response.data.reviews }));
+                setExpandedCardIndex(0);
             }
         } catch (e) {
             toast.error("License no is invalid!");
@@ -30,15 +41,26 @@ function Review() {
         }
     }
 
-    const handleCompanySelect = async (companyName) => {
+    const handleCompanySelect = async (companyName, pageToFetch = 0) => {
         try {
-            console.log("🔍 Selected company:", companyName);
-            const response = await getSpecificCompanyBuses(companyName);
-            setSelectedCompanyBuses(response.data);
-            setBuses(response.data);
-            console.log("✅ Received from backend:", response.data);
+            const response = await getSpecificCompanyBuses(companyName, pageToFetch, size);
+            setSelectedCompanyBuses(response.data.content);
+            setBuses(response.data.content);
+            setPage(response.data.number);
+            setTotalPages(response.data.totalPages);
+            setExpandedCardIndex(null);
         } catch (error) {
             console.error("Error fetching bus data:", error);
+        }
+    };
+
+    const fetchReviews = async (busId) => {
+        try {
+            const response = await getReviewsByBusId(busId);
+            setReviews(prev => ({ ...prev, [busId]: response.data }));
+            console.log("reviews: ", response.data[0].message);
+        } catch (err) {
+            console.error("Error fetching reviews", err);
         }
     };
 
@@ -58,6 +80,14 @@ function Review() {
             }
         };
         fetchBus();
+
+        if (selectedSearchOption === "by license no") {
+            setBuses([]);
+            setPagesNeeded(false);
+        } else {
+            setBuses([]);
+            setPagesNeeded(true);
+        }
     }, [selectedSearchOption, hasCompaniesFetched]);
 
     return (
@@ -202,7 +232,11 @@ function Review() {
                                             marginTop: "20px"
                                         }}
                                         defaultValue=""
-                                        onChange={(e) => handleCompanySelect(e.target.value)}
+                                        onChange={(e) => {
+                                            const company = e.target.value;
+                                            setSearchedCompany(company);
+                                            handleCompanySelect(company, 0);
+                                        }}
                                     >
                                         <option value="" disabled>
                                             Select a bus company
@@ -225,20 +259,108 @@ function Review() {
                                 alignItems: "center",
                             }}
                         >
-                            {buses.map((bus, index) => (
-                                <div className="card mb-3">
-                                    <img src="..." className="card-img-top" alt="..." />
-                                    <div className="card-body">
-                                        <h5 className="card-title">{bus.companyName}</h5>
-                                        <p className="card-text">{bus.licenseNo}</p>
-                                        <p className="card-text">
-                                            <small className="text-body-secondary">
-                                                {bus.stops.join(" → ")}
-                                            </small></p>
-                                    </div>
-                                </div>
-                            ))}
 
+                            <div className="container mt-4" style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                width: "100%",
+                            }}>
+                                <div className="row justify-content-center" style={{ maxWidth: "900px", width: "100%" }}>
+                                    {buses.map((bus, index) => (
+                                        <div key={index} className="col-12 mb-4 d-flex justify-content-center">
+                                            <div style={{ width: "100%", maxWidth: "800px" }}>
+                                                <div className="card" style={{
+                                                    width: "100%",
+                                                    maxWidth: "800px",
+                                                    minHeight: "200px",
+                                                    transition: "transform 0.3s ease",
+                                                    transform: hoveredCardIndex === index ? "scale(1.03)" : "scale(1)",
+                                                    boxShadow:
+                                                        hoveredCardIndex === index ? "0 10px 20px rgba(0,0,0,0.2)" : "none",
+                                                }}
+                                                    onMouseEnter={() => setHoveredCardIndex(index)}
+                                                    onMouseLeave={() => setHoveredCardIndex(null)}
+                                                    onClick={() => {
+                                                        if (expandedCardIndex === index) {
+                                                            setExpandedCardIndex(null);
+                                                        } else {
+                                                            setExpandedCardIndex(index);
+                                                            fetchReviews(bus.busId);
+                                                        }
+                                                    }}
+                                                >
+                                                    <div className="row g-0" style={{ height: "100%" }}>
+                                                        <div className="col-md-4">
+                                                            <img
+                                                                src={bus.photo || "https://via.placeholder.com/150"}
+                                                                className="img-fluid h-100"
+                                                                alt="Bus"
+                                                                style={{ objectFit: "cover", height: "200px", width: "100%" }}
+                                                            />
+                                                        </div>
+                                                        <div className="col-md-8">
+                                                            <div className="card-body d-flex flex-column justify-content-center h-100">
+                                                                <h5 className="card-title">{bus.companyName}</h5>
+                                                                <p className="card-text mb-1">{bus.licenseNo}</p>
+                                                                <p className="card-text">
+                                                                    <small className="text-body-secondary">
+                                                                        {bus.stops?.join(" → ") || "No stops listed"}
+                                                                    </small>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Expanded section for reviews */}
+                                                    {expandedCardIndex === index && (
+                                                        <div
+                                                            style={{
+                                                                backgroundColor: "#fdf3d2",
+                                                                padding: "15px",
+                                                                borderTop: "1px solid #ccc"
+                                                            }}
+                                                        >
+                                                            <h6 style={{ fontWeight: "600" }}>Reviews:</h6>
+                                                            {reviews[bus.busId]?.length > 0 ? (
+                                                                reviews[bus.busId].map((review, idx) => (
+                                                                    <p key={idx} style={{ marginBottom: "5px" }}>
+                                                                        ⭐ {review.stars} - {review.message}
+                                                                    </p>
+                                                                ))
+                                                            ) : (
+                                                                <p>No reviews found.</p>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {pagesNeeded && (
+                                <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+                                    <button
+                                        onClick={() => handleCompanySelect(searchedCompany, page - 1)}
+                                        disabled={page === 0}
+                                        className="btn btn-primary me-2"
+                                    >
+                                        Previous
+                                    </button>
+                                    <span style={{ color: "white", fontWeight: 600 }}>
+                                        Page {page + 1} of {totalPages}
+                                    </span>
+                                    <button
+                                        onClick={() => handleCompanySelect(searchedCompany, page + 1)}
+                                        disabled={page + 1 >= totalPages}
+                                        className="btn btn-primary ms-2"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            )}
 
                         </div>
 
