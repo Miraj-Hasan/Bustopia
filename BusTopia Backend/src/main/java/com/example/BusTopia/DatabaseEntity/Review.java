@@ -1,8 +1,11 @@
 package com.example.BusTopia.DatabaseEntity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -10,6 +13,7 @@ import java.util.List;
 @Table(name = "Review")
 public class Review {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer reviewId;
 
     @Column(nullable = false)
@@ -25,5 +29,9 @@ public class Review {
 
     private List<String> images;
 
-    private float stars;
+    private int stars;
+
+    @CreationTimestamp
+    @Column(name = "review_time", nullable = false, updatable = false)
+    private LocalDateTime reviewTime;
 }

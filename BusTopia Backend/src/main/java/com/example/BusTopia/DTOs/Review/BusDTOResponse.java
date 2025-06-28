@@ -15,4 +15,5 @@ public class BusDTOResponse {
     private LocalDateTime startTime;
     private String photo;
     private List<String> stops;
+    private boolean canCurrentUserReview;
 }

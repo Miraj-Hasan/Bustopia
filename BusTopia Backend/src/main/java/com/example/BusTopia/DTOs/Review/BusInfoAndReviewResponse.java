@@ -11,5 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 public class BusInfoAndReviewResponse {
     private BusDTOResponse bus;
-    private List<Review> reviews;
+    private List<ReviewDTOResponse> reviews;
 }

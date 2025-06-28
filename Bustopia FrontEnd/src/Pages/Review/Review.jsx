@@ -1,7 +1,10 @@
-import { getAllCompanies, getReviewsByBusId, getSpecificBus, getSpecificCompanyBuses } from "../../Api/ApiCalls";
+import { getAllCompanies, getReviewsByBusId, getSpecificBus, getSpecificCompanyBuses, getTravelledBuses } from "../../Api/ApiCalls";
 import { Navbar } from "../../Components/Navbar/Navbar";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useContext } from "react";
+import { UserContext } from "../../Context/UserContext";
+import { formatDistanceToNow } from "date-fns";
 
 
 function Review() {
@@ -22,11 +25,13 @@ function Review() {
     const [pagesNeeded, setPagesNeeded] = useState(true);
     const size = 10;
 
+    const { user } = useContext(UserContext);
+
     async function getLicensedBus(e) {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await getSpecificBus(searchedLicense);
+            const response = await getSpecificBus(searchedLicense, user.id);
             console.log("license: ", searchedLicense);
             if (response.status === 200) {
                 toast.success("found the bus!");
@@ -43,7 +48,7 @@ function Review() {
 
     const handleCompanySelect = async (companyName, pageToFetch = 0) => {
         try {
-            const response = await getSpecificCompanyBuses(companyName, pageToFetch, size);
+            const response = await getSpecificCompanyBuses(companyName, pageToFetch, size, user.id);
             setSelectedCompanyBuses(response.data.content);
             setBuses(response.data.content);
             setPage(response.data.number);
@@ -69,6 +74,7 @@ function Review() {
         const fetchBus = async () => {
             if (selectedSearchOption === "by company" && !hasCompaniesFetched) {
                 try {
+                    setBuses([]);
                     const response = await getAllCompanies();
                     if (response.status === 200) {
                         setAllCompanies(response.data);
@@ -77,16 +83,26 @@ function Review() {
                 } catch (e) {
                     toast.error("Error in fetching the companies!");
                 }
+            } else if (selectedSearchOption === "by buses travelled") {
+                try {
+                    setBuses([]);
+                    const response = await getTravelledBuses(user.id);
+                    if (response.status === 200) {
+                        setBuses(response.data);
+                        setPagesNeeded(false);
+                    }
+                } catch (e) {
+                    toast.error("Error in fetching the companies!");
+                }
             }
         };
+
+        setBuses([]);
+
         fetchBus();
 
         if (selectedSearchOption === "by license no") {
-            setBuses([]);
             setPagesNeeded(false);
-        } else {
-            setBuses([]);
-            setPagesNeeded(true);
         }
     }, [selectedSearchOption, hasCompaniesFetched]);
 
@@ -320,16 +336,84 @@ function Review() {
                                                                 padding: "15px",
                                                                 borderTop: "1px solid #ccc"
                                                             }}
+                                                            onClick={(e) => e.stopPropagation()} 
                                                         >
                                                             <h6 style={{ fontWeight: "600" }}>Reviews:</h6>
                                                             {reviews[bus.busId]?.length > 0 ? (
                                                                 reviews[bus.busId].map((review, idx) => (
-                                                                    <p key={idx} style={{ marginBottom: "5px" }}>
-                                                                        ⭐ {review.stars} - {review.message}
-                                                                    </p>
+                                                                    <div
+                                                                        key={idx}
+                                                                        style={{
+                                                                            display: "flex",
+                                                                            alignItems: "flex-start",
+                                                                            gap: "15px",
+                                                                            marginBottom: "15px",
+                                                                            backgroundColor: "#ffffff",
+                                                                            padding: "15px",
+                                                                            borderRadius: "10px",
+                                                                            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                                                                        }}
+                                                                    >
+                                                                        <img
+                                                                            src={review.userPhoto || "https://via.placeholder.com/50"}
+                                                                            alt="User"
+                                                                            style={{
+                                                                                width: "50px",
+                                                                                height: "50px",
+                                                                                borderRadius: "50%",
+                                                                                objectFit: "cover",
+                                                                            }}
+                                                                        />
+                                                                        <div style={{ flex: 1 }}>
+                                                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                                                                <span style={{ fontWeight: "bold", color: "#333" }}>{review.userName}</span>
+                                                                                <span style={{ fontSize: "0.9rem", color: "#777" }}>
+                                                                                    {formatDistanceToNow(new Date(review.reviewTime), { addSuffix: true })}
+                                                                                </span>
+                                                                            </div>
+
+                                                                            <div style={{ color: "#ffc107", margin: "5px 0" }}>
+                                                                                {"★".repeat(review.stars)}{"☆".repeat(5 - review.stars)}
+                                                                            </div>
+
+                                                                            <p style={{ margin: "0", color: "#444" }}>{review.message}</p>
+
+                                                                            {review.reviewImages?.length > 0 && (
+                                                                                <div style={{ marginTop: "10px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                                                                    {review.reviewImages.map((img, i) => (
+                                                                                        <img key={i} src={img} alt="Review" style={{ width: "100px", borderRadius: "8px" }} />
+                                                                                    ))}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
                                                                 ))
                                                             ) : (
-                                                                <p>No reviews found.</p>
+                                                                <p style={{ marginTop: "10px" }}>No reviews found.</p>
+                                                            )}
+
+                                                            {bus.canCurrentUserReview && (
+                                                                <div style={{ marginTop: "20px" }}>
+                                                                    <h6 style={{ fontWeight: "600" }}>Write a Review:</h6>
+                                                                    <textarea
+                                                                        placeholder="Write your review here..."
+                                                                        rows={4}
+                                                                        style={{
+                                                                            width: "100%",
+                                                                            padding: "10px",
+                                                                            borderRadius: "8px",
+                                                                            border: "1px solid #ccc",
+                                                                            resize: "none",
+                                                                        }}
+                                                                    ></textarea>
+                                                                    <button
+                                                                        className="btn btn-success mt-2"
+                                                                        style={{ borderRadius: "6px", padding: "8px 16px" }}
+                                                                        onClick={() => console.log("Submit review logic here")}
+                                                                    >
+                                                                        Submit Review
+                                                                    </button>
+                                                                </div>
                                                             )}
                                                         </div>
                                                     )}

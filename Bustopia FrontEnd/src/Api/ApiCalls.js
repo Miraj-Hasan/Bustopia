@@ -91,19 +91,23 @@ export const getAllCompanies = async () => {
   return response;
 }
 
-export const getSpecificBus = async (license) => {
+export const getSpecificBus = async (license, userId) => {
   const response = await axios.get(`${API_BASE_URL}/api/getReviewsByLicenseNo`, {
-    params: { licenseNo: license },
+    params: { 
+      licenseNo: license,
+      userId: userId 
+    },
     withCredentials: true,
   });
   return response;
 }
 
-export const getSpecificCompanyBuses = async (companyName, pageToFetch, size) => {
+export const getSpecificCompanyBuses = async (companyName, pageToFetch, size,  userId) => {
   const response = await axios.get(`${API_BASE_URL}/api/getSpecificCompanyBuses`, {
     params: { companyName: companyName, 
       page: pageToFetch,
-      size: size
+      size: size,
+      userId: userId
      }, 
     withCredentials: true,
   });
@@ -112,7 +116,19 @@ export const getSpecificCompanyBuses = async (companyName, pageToFetch, size) =>
 
 export const getReviewsByBusId = async (busId) => {
   const response = await axios.get(`${API_BASE_URL}/api/getReviewsByBusId`, {
-    params: { busId: busId }, 
+    params: { 
+      busId: busId 
+    }, 
+    withCredentials: true,
+  });
+  return response;
+}
+
+export const getTravelledBuses = async (userId) => {
+  const response = await axios.get(`${API_BASE_URL}/api/getTravelledBuses`, {
+    params: { 
+      userId: userId 
+    },
     withCredentials: true,
   });
   return response;

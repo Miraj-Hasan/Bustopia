@@ -2,6 +2,7 @@ package com.example.BusTopia.Controller;
 
 import com.example.BusTopia.DTOs.Review.BusDTOResponse;
 import com.example.BusTopia.DTOs.Review.BusInfoAndReviewResponse;
+import com.example.BusTopia.DTOs.Review.ReviewDTOResponse;
 import com.example.BusTopia.DatabaseEntity.Bus;
 import com.example.BusTopia.DatabaseEntity.Review;
 import com.example.BusTopia.Services.ReviewService;
@@ -33,24 +34,28 @@ public class ReviewController {
     public ResponseEntity<?> getSpecificCompanyBuses(@Valid
                                                      @RequestParam String companyName,
                                                      @RequestParam(defaultValue = "0") int page,
-                                                     @RequestParam(defaultValue = "10") int size
+                                                     @RequestParam(defaultValue = "10") int size,
+                                                     @RequestParam int userId
                                                  ) {
-        Page<BusDTOResponse> busList = reviewService.getAllBusesOfACompanyDTO(companyName, page, size);
+        Page<BusDTOResponse> busList = reviewService.getAllBusesOfACompanyDTO(companyName, page, size, userId);
         return ResponseEntity.ok(busList);
     }
 
     @GetMapping("/getReviewsByBusId")
     public ResponseEntity<?> getReviewsByBusId(@Valid @RequestParam int busId) {
-        List<Review> reviews = reviewService.getReviewsByBusId(busId);
-        System.out.println("reviews: " + reviews );
+        List<ReviewDTOResponse> reviews = reviewService.getReviewsByBusId(busId);
         return ResponseEntity.ok(reviews);
     }
 
     @GetMapping("/getReviewsByLicenseNo")
-    public ResponseEntity<?> getReviewsByLicenseNo(@Valid @RequestParam String licenseNo) {
-        System.out.println("License no got: " + licenseNo);
-        BusInfoAndReviewResponse response = reviewService.getReviewsByLicenseNo(licenseNo);
-        System.out.println("final response: " + response);
+    public ResponseEntity<?> getReviewsByLicenseNo(@Valid @RequestParam String licenseNo, @RequestParam int userId) {
+        BusInfoAndReviewResponse response = reviewService.getReviewsByLicenseNo(licenseNo, userId);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/getTravelledBuses")
+    public ResponseEntity<?> getTravelledBuses(@Valid @RequestParam int userId ) {
+        List<BusDTOResponse> busList = reviewService.getTravelledBuses(userId);
+        return ResponseEntity.ok(busList);
     }
 }
