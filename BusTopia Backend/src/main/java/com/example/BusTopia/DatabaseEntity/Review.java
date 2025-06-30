@@ -6,6 +6,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -27,7 +28,10 @@ public class Review {
     @JoinColumn(name = "bus_id", nullable = false)
     private Bus bus;
 
-    private List<String> images;
+
+    @Column(name = "images") // Added length for long URLs
+//    @Convert(converter = StringListConverter.class)
+    private List<String> images = new ArrayList<>(); // Initialize collection
 
     private int stars;
 

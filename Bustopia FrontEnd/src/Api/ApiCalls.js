@@ -133,3 +133,24 @@ export const getTravelledBuses = async (userId) => {
   });
   return response;
 }
+
+
+export const uploadReviewImages = async (formData) => {
+  const response = await axios.post(`${API_BASE_URL}/api/reviews/uploadReviewImages`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    withCredentials: true
+  });
+  return response;
+};
+
+export const submitReview = async (reviewData) => {
+  const response = await axios.post(`${API_BASE_URL}/api/reviews`, reviewData, {
+    withCredentials: true,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  return response;
+};

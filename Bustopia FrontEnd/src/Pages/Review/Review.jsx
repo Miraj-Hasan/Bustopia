@@ -1,4 +1,4 @@
-import { getAllCompanies, getReviewsByBusId, getSpecificBus, getSpecificCompanyBuses, getTravelledBuses } from "../../Api/ApiCalls";
+import { getAllCompanies, getReviewsByBusId, getSpecificBus, getSpecificCompanyBuses, getTravelledBuses, uploadReviewImages, submitReview } from "../../Api/ApiCalls";
 import { Navbar } from "../../Components/Navbar/Navbar";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -23,6 +23,14 @@ function Review() {
     const [expandedCardIndex, setExpandedCardIndex] = useState(null);
     const [reviews, setReviews] = useState({});
     const [pagesNeeded, setPagesNeeded] = useState(true);
+    const [reviewText, setReviewText] = useState("");
+    const [starRating, setStarRating] = useState(0);
+    const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+    const [hoveredStar, setHoveredStar] = useState(0);
+    const [reviewImages, setReviewImages] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
+    const [isUploadingImages, setIsUploadingImages] = useState(false);
+
     const size = 10;
 
     const { user } = useContext(UserContext);
@@ -46,6 +54,102 @@ function Review() {
         }
     }
 
+    const handleImageUpload = (e) => {
+        const files = Array.from(e.target.files);
+
+        // Validate number of images (example: max 4)
+        if (files.length + reviewImages.length > 4) {
+            toast.error("You can upload up to 4 images");
+            return;
+        }
+
+        // Validate image types and size
+        const validFiles = files.filter(file => {
+            if (!file.type.match('image.*')) {
+                toast.error(`${file.name} is not an image file`);
+                return false;
+            }
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                toast.error(`${file.name} is too large (max 5MB)`);
+                return false;
+            }
+            return true;
+        });
+
+        // Create previews
+        const newPreviews = validFiles.map(file => ({
+            file,
+            preview: URL.createObjectURL(file)
+        }));
+
+        setReviewImages(prev => [...prev, ...validFiles]);
+        setImagePreviews(prev => [...prev, ...newPreviews]);
+    };
+
+    const removeImage = (index) => {
+        // Revoke the object URL to avoid memory leaks
+        URL.revokeObjectURL(imagePreviews[index].preview);
+
+        setReviewImages(prev => prev.filter((_, i) => i !== index));
+        setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSubmitReview = async (busId) => {
+        if (!reviewText.trim()) {
+            toast.error("Please write a review before submitting");
+            return;
+        }
+
+        if (starRating === 0) {
+            toast.error("Please select a star rating");
+            return;
+        }
+
+        setIsSubmittingReview(true);
+
+        try {
+            // First upload images if any
+            let imageUrls = [];
+            if (reviewImages.length > 0) {
+                setIsUploadingImages(true);
+                const formData = new FormData();
+                reviewImages.forEach(file => {
+                    formData.append('images', file);
+                });
+
+                const uploadResponse = await uploadReviewImages(formData);
+                imageUrls = uploadResponse.data;
+                console.log("urls: ", imageUrls);
+                setIsUploadingImages(false);
+            }
+
+            // Then submit the review with image URLs
+            const response = await submitReview({
+                busId: busId,
+                userId: user.id,
+                message: reviewText,
+                stars: starRating,
+                images: imageUrls || [],
+            });
+
+            if (response.status === 200) {
+                toast.success("Review submitted successfully!");
+                setReviewText("");
+                setStarRating(0);
+                setReviewImages([]);
+                setImagePreviews([]);
+                // Refresh the reviews for this bus
+                fetchReviews(busId);
+            }
+        } catch (error) {
+            toast.error("Failed to submit review");
+            console.error("Review submission error:", error);
+        } finally {
+            setIsSubmittingReview(false);
+            setIsUploadingImages(false);
+        }
+    };
+
     const handleCompanySelect = async (companyName, pageToFetch = 0) => {
         try {
             const response = await getSpecificCompanyBuses(companyName, pageToFetch, size, user.id);
@@ -54,6 +158,7 @@ function Review() {
             setPage(response.data.number);
             setTotalPages(response.data.totalPages);
             setExpandedCardIndex(null);
+            setPagesNeeded(true);
         } catch (error) {
             console.error("Error fetching bus data:", error);
         }
@@ -63,7 +168,6 @@ function Review() {
         try {
             const response = await getReviewsByBusId(busId);
             setReviews(prev => ({ ...prev, [busId]: response.data }));
-            console.log("reviews: ", response.data[0].message);
         } catch (err) {
             console.error("Error fetching reviews", err);
         }
@@ -101,7 +205,7 @@ function Review() {
 
         fetchBus();
 
-        if (selectedSearchOption === "by license no") {
+        if (selectedSearchOption === "by license no" || selectedSearchOption === "by buses travelled") {
             setPagesNeeded(false);
         }
     }, [selectedSearchOption, hasCompaniesFetched]);
@@ -290,6 +394,7 @@ function Review() {
                                                     width: "100%",
                                                     maxWidth: "800px",
                                                     minHeight: "200px",
+                                                    height: "100%",
                                                     transition: "transform 0.3s ease",
                                                     transform: hoveredCardIndex === index ? "scale(1.03)" : "scale(1)",
                                                     boxShadow:
@@ -306,13 +411,21 @@ function Review() {
                                                         }
                                                     }}
                                                 >
-                                                    <div className="row g-0" style={{ height: "100%" }}>
-                                                        <div className="col-md-4">
+                                                    <div className="row g-0" style={{
+                                                        display: "flex",
+                                                        height: "100%"
+                                                    }}>
+                                                        <div className="col-md-4" style={{ display: "flex", height: "100%" }}>
                                                             <img
                                                                 src={bus.photo || "https://via.placeholder.com/150"}
-                                                                className="img-fluid h-100"
                                                                 alt="Bus"
-                                                                style={{ objectFit: "cover", height: "200px", width: "100%" }}
+                                                                style={{
+                                                                    height: "100%",
+                                                                    width: "100%",
+                                                                    objectFit: "cover",
+                                                                    borderTopLeftRadius: "0.5rem",
+                                                                    borderBottomLeftRadius: "0.5rem",
+                                                                }}
                                                             />
                                                         </div>
                                                         <div className="col-md-8">
@@ -336,7 +449,7 @@ function Review() {
                                                                 padding: "15px",
                                                                 borderTop: "1px solid #ccc"
                                                             }}
-                                                            onClick={(e) => e.stopPropagation()} 
+                                                            onClick={(e) => e.stopPropagation()}
                                                         >
                                                             <h6 style={{ fontWeight: "600" }}>Reviews:</h6>
                                                             {reviews[bus.busId]?.length > 0 ? (
@@ -378,10 +491,15 @@ function Review() {
 
                                                                             <p style={{ margin: "0", color: "#444" }}>{review.message}</p>
 
-                                                                            {review.reviewImages?.length > 0 && (
+                                                                            {review.images?.length > 0 && (
                                                                                 <div style={{ marginTop: "10px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                                                                                    {review.reviewImages.map((img, i) => (
-                                                                                        <img key={i} src={img} alt="Review" style={{ width: "100px", borderRadius: "8px" }} />
+                                                                                    {review.images.map((img, i) => (
+                                                                                        <img key={i} src={img} alt="Review" style={{
+                                                                                            width: "100px", 
+                                                                                            height: "100px",
+                                                                                            objectFit: "cover",
+                                                                                            borderRadius: "8px"
+                                                                                        }} />
                                                                                     ))}
                                                                                 </div>
                                                                             )}
@@ -395,9 +513,30 @@ function Review() {
                                                             {bus.canCurrentUserReview && (
                                                                 <div style={{ marginTop: "20px" }}>
                                                                     <h6 style={{ fontWeight: "600" }}>Write a Review:</h6>
+
+                                                                    {/* Star Rating */}
+                                                                    <div style={{ marginBottom: "10px", display: "flex", gap: "5px" }}>
+                                                                        {[1, 2, 3, 4, 5].map((star) => (
+                                                                            <span
+                                                                                key={star}
+                                                                                style={{
+                                                                                    cursor: "pointer",
+                                                                                    fontSize: "24px",
+                                                                                    color: star <= (hoveredStar || starRating) ? "#ffc107" : "#e4e5e9",
+                                                                                }}
+                                                                                onMouseEnter={() => setHoveredStar(star)}
+                                                                                onMouseLeave={() => setHoveredStar(0)}
+                                                                                onClick={() => setStarRating(star)}
+                                                                            >
+                                                                                {star <= (hoveredStar || starRating) ? "★" : "☆"}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+
                                                                     <textarea
                                                                         placeholder="Write your review here..."
                                                                         rows={4}
+                                                                        value={reviewText}
                                                                         style={{
                                                                             width: "100%",
                                                                             padding: "10px",
@@ -405,13 +544,100 @@ function Review() {
                                                                             border: "1px solid #ccc",
                                                                             resize: "none",
                                                                         }}
+                                                                        onChange={(e) => setReviewText(e.target.value)}
                                                                     ></textarea>
+
+                                                                    {/* Image Upload Section */}
+                                                                    <div style={{ marginTop: "15px" }}>
+                                                                        <label style={{ display: "block", marginBottom: "8px", fontWeight: "500" }}>
+                                                                            Add Photos (optional):
+                                                                        </label>
+
+                                                                        {/* Hidden file input */}
+                                                                        <input
+                                                                            type="file"
+                                                                            id="review-images"
+                                                                            multiple
+                                                                            accept="image/*"
+                                                                            onChange={handleImageUpload}
+                                                                            style={{ display: "none" }}
+                                                                        />
+
+                                                                        {/* Custom upload button */}
+                                                                        <label
+                                                                            htmlFor="review-images"
+                                                                            style={{
+                                                                                display: "inline-block",
+                                                                                padding: "8px 16px",
+                                                                                backgroundColor: "#f0f0f0",
+                                                                                border: "1px dashed #ccc",
+                                                                                borderRadius: "6px",
+                                                                                cursor: "pointer",
+                                                                                marginBottom: "10px",
+                                                                            }}
+                                                                        >
+                                                                            Choose Images
+                                                                        </label>
+
+                                                                        {/* Image previews */}
+                                                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "10px" }}>
+                                                                            {imagePreviews.map((preview, index) => (
+                                                                                <div key={index} style={{ position: "relative" }}>
+                                                                                    <img
+                                                                                        src={preview.preview}
+                                                                                        alt={`Preview ${index}`}
+                                                                                        style={{
+                                                                                            width: "80px",
+                                                                                            height: "80px",
+                                                                                            objectFit: "cover",
+                                                                                            borderRadius: "6px",
+                                                                                            border: "1px solid #ddd",
+                                                                                        }}
+                                                                                    />
+                                                                                    <button
+                                                                                        onClick={() => removeImage(index)}
+                                                                                        style={{
+                                                                                            position: "absolute",
+                                                                                            top: "-8px",
+                                                                                            right: "-8px",
+                                                                                            background: "#ff4444",
+                                                                                            color: "white",
+                                                                                            border: "none",
+                                                                                            borderRadius: "50%",
+                                                                                            width: "20px",
+                                                                                            height: "20px",
+                                                                                            display: "flex",
+                                                                                            alignItems: "center",
+                                                                                            justifyContent: "center",
+                                                                                            cursor: "pointer",
+                                                                                            fontSize: "12px",
+                                                                                        }}
+                                                                                    >
+                                                                                        ×
+                                                                                    </button>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+
                                                                     <button
                                                                         className="btn btn-success mt-2"
                                                                         style={{ borderRadius: "6px", padding: "8px 16px" }}
-                                                                        onClick={() => console.log("Submit review logic here")}
+                                                                        onClick={() => handleSubmitReview(bus.busId)}
+                                                                        disabled={isSubmittingReview || isUploadingImages}
                                                                     >
-                                                                        Submit Review
+                                                                        {isSubmittingReview || isUploadingImages ? (
+                                                                            <>
+                                                                                <span
+                                                                                    className="spinner-border spinner-border-sm me-2"
+                                                                                    role="status"
+                                                                                    aria-hidden="true"
+                                                                                ></span>
+                                                                                {isUploadingImages ? "Uploading Images..." : "Submitting..."}
+                                                                            </>
+                                                                        ) : (
+                                                                            "Submit Review"
+                                                                        )}
                                                                     </button>
                                                                 </div>
                                                             )}
