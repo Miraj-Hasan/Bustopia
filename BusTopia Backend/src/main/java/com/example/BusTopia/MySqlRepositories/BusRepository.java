@@ -21,9 +21,6 @@ public interface BusRepository extends JpaRepository<Bus, Integer> {
     @Query("SELECT b FROM Bus b WHERE b.companyName = :companyName")
     Page<Bus> findSpecificCompanyBus(@Param("companyName") String companyName, Pageable pageable);
 
-    @Query("SELECT r FROM Review r WHERE r.bus.busId = :busId")
-    List<Review> findByBusId(int busId);
-
     Bus findByLicenseNo(String licenseNo);
 
     @Query("SELECT COUNT(t) > 0 FROM Ticket t WHERE t.user.id = :userId AND t.bus.busId = :busId")

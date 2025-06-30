@@ -399,6 +399,8 @@ function Review() {
                                                     transform: hoveredCardIndex === index ? "scale(1.03)" : "scale(1)",
                                                     boxShadow:
                                                         hoveredCardIndex === index ? "0 10px 20px rgba(0,0,0,0.2)" : "none",
+                                                    backgroundColor: "#e0e0e0",
+                                                    border: "1px solid #bdbdbd",
                                                 }}
                                                     onMouseEnter={() => setHoveredCardIndex(index)}
                                                     onMouseLeave={() => setHoveredCardIndex(null)}
@@ -445,9 +447,9 @@ function Review() {
                                                     {expandedCardIndex === index && (
                                                         <div
                                                             style={{
-                                                                backgroundColor: "#fdf3d2",
+                                                                backgroundColor: "#9e9e9e", // Dark gray
                                                                 padding: "15px",
-                                                                borderTop: "1px solid #ccc"
+                                                                borderTop: "1px solid #bdbdbd",
                                                             }}
                                                             onClick={(e) => e.stopPropagation()}
                                                         >
@@ -495,7 +497,7 @@ function Review() {
                                                                                 <div style={{ marginTop: "10px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
                                                                                     {review.images.map((img, i) => (
                                                                                         <img key={i} src={img} alt="Review" style={{
-                                                                                            width: "100px", 
+                                                                                            width: "100px",
                                                                                             height: "100px",
                                                                                             objectFit: "cover",
                                                                                             borderRadius: "8px"
@@ -522,7 +524,10 @@ function Review() {
                                                                                 style={{
                                                                                     cursor: "pointer",
                                                                                     fontSize: "24px",
-                                                                                    color: star <= (hoveredStar || starRating) ? "#ffc107" : "#e4e5e9",
+                                                                                    color: star <= (hoveredStar || starRating) ? "#ffc107" : "#888",
+                                                                                    textShadow: star <= (hoveredStar || starRating)
+                                                                                        ? "0 0 2px rgba(255, 193, 7, 0.8)"
+                                                                                        : "0 0 1px #333", // 👈 Adds border effect
                                                                                 }}
                                                                                 onMouseEnter={() => setHoveredStar(star)}
                                                                                 onMouseLeave={() => setHoveredStar(0)}

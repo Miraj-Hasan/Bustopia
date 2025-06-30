@@ -56,7 +56,7 @@ public class ReviewService {
     }
 
     public List<ReviewDTOResponse> getReviewsByBusId(int busId) {
-        List<Review> reviewList = busRepository.findByBusId(busId);
+        List<Review> reviewList = reviewRepository.findByBusId(busId);
         List<ReviewDTOResponse> reviews;
         reviews = reviewList.stream()
                 .map(review -> new ReviewDTOResponse(
@@ -90,7 +90,7 @@ public class ReviewService {
                 busRepository.existsTicketByUserIdAndBusId(userId, bus.getBusId())
         );
 
-        List<Review> reviewList = busRepository.findByBusId(bus.getBusId());
+        List<Review> reviewList = reviewRepository.findByBusId(bus.getBusId());
 
         List<ReviewDTOResponse> reviews = reviewList.stream()
                 .map(review -> new ReviewDTOResponse(
