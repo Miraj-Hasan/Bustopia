@@ -4,7 +4,7 @@ import io.lettuce.core.dynamic.annotation.CommandNaming;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Data
@@ -23,7 +23,7 @@ public class Bus {
     @Column(nullable = false)
     private String category;
 
-    private LocalDateTime startTime;
+    private LocalTime startTime;
 
     private String photo;
 
