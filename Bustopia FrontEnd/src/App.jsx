@@ -56,6 +56,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/ticket-verification" element={<TicketVerification />} />
 
         <Route path="*" element={<h1>Balchal dio na guru</h1>} />
       </Routes>
