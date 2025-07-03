@@ -8,5 +8,6 @@ public enum IntentType {
     COMPLAIN,
     UNKNOWN,
     REVIEWS,
-    CHECK_AVAILABLE_BUSES
+    CHECK_AVAILABLE_BUSES,
+    COST_INQUIRY
 }

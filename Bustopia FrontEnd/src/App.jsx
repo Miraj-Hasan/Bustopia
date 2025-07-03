@@ -11,7 +11,7 @@ import Register from './Pages/Register/Register';
 import ResetPassword from './Pages/ResetPassword/ResetPassword';
 import Verify from './Pages/VerifyEmail/Verify';
 import Review from './Pages/Review/Review';
-
+import ChatWidget from './Components/ChatWidget/ChatWidget';
 
 function App() {
 
@@ -23,13 +23,21 @@ function App() {
           element={
             <ProtectedRoute>
               <Home />
+              <ChatWidget />
             </ProtectedRoute>
           }
         />
 
-        <Route path='/profile' element={<ProtectedRoute><Profile /></ProtectedRoute>}></Route>
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        ></Route>
 
-        <Route path='/logout' element={<LogOut/>}/>
+        <Route path="/logout" element={<LogOut />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -52,6 +60,8 @@ function App() {
         pauseOnHover
         theme="colored"
       />
+      
+
     </>
   );
 }

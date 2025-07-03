@@ -1,8 +1,10 @@
 package com.example.BusTopia.DatabaseEntity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
+@Data
 @Table(name = "Price_mapping")
 public class PriceMapping {
 

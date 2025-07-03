@@ -13,6 +13,7 @@ export function LogOut(){
         try{
             const res = await logOutFromServer();
             if(res.status === 200){
+                localStorage.clear();
                 navigate("/login");
                 setUser(null)
                 sessionStorage.setItem("user",null)

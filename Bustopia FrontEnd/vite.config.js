@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     https: true,           // ✅ Now works!
     host: 'localhost',
-    port: 3000,
+    port: 4000,
   },
   plugins: [react(), mkcert()],
 });
