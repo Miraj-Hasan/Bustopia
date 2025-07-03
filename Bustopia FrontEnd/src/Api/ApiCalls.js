@@ -172,10 +172,12 @@ export const verifyTicket = async (ticketCode, companyName) => {
 export const fetchAvailableBuses = async (formData) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/buses/available`, formData, {
+      withCredentials: true,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        "Content-Type": "application/json",
       },
     });
+    console.log("Available buses response:", response.data);
     return response;
   } catch (error) {
     throw error;
@@ -186,8 +188,9 @@ export const fetchAvailableBuses = async (formData) => {
 export const bookTicket = async (bookingData) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/tickets/book`, bookingData, {
+      withCredentials: true,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        "Content-Type": "application/json",
       },
     });
     return response;

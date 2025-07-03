@@ -14,4 +14,8 @@ public class Route {
     private Integer routeId;
 
     private List<String> stops;
+
+    public List<String> getStops() {
+        return stops;
+    }
 }

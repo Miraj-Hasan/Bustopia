@@ -3,6 +3,8 @@ package com.example.BusTopia.DatabaseEntity;
 import com.example.BusTopia.MySqlRepositories.TimeMappingRepository;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Duration;
@@ -14,6 +16,8 @@ import java.util.UUID;
 
 @Entity
 @Data
+@AllArgsConstructor
+@NoArgsConstructor          // ✅ Adds default constructor
 @Table(name = "Ticket")
 public class Ticket {
     @Id
@@ -48,12 +52,20 @@ public class Ticket {
     @Column(nullable = false)
     private LocalTime scheduledTime;
 
+//    @Column(nullable = false)
+    @Column
+    private LocalTime bookingTime;
+
+//    @Column(nullable = false)
+    @Column
+    private String status;
+
     @Transient
     @Autowired
     private transient TimeMappingRepository timeMappingRepository;
 
     @PrePersist
-    private void generateTicketCodeAndCalculateStartTime() {
+    public void generateTicketCodeAndCalculateStartTime() {
         String busPart = (bus != null && bus.getBusId() != null) ? String.valueOf(bus.getBusId()) : "XXX";
         String datePart = (date != null) ? date.format(DateTimeFormatter.BASIC_ISO_DATE): "YYYYMMDD";
         String randomPart = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 10).toUpperCase();
@@ -105,5 +117,11 @@ public class Ticket {
         this.scheduledTime = baseStartTime.plus(totalDuration);
     }
 
+//    public void setBus(Bus bus) {
+//        this.bus = bus;
+//    }
+//
+//    public void setUser(Long userId) {
+//    }
 }
 

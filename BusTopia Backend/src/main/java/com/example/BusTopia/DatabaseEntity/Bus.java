@@ -1,6 +1,5 @@
 package com.example.BusTopia.DatabaseEntity;
 
-import io.lettuce.core.dynamic.annotation.CommandNaming;
 import jakarta.persistence.*;
 import lombok.Data;
 

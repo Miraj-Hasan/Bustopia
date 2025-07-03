@@ -53,15 +53,16 @@ const BuyTicket = () => {
     try {
       const bookingData = {
         userId: user.id,
-        busId: bus.bus_id,
-        routeId: bus.route_id,
-        departureTime: bus.departure_time,
+        busId: bus.busId,
+        routeId: bus.route.routeId,
+        departureTime: bus.startTime,
+        source: bus.route.stops[0],
+        destination: bus.route.stops[bus.route.stops.length - 1],
+        date: formData.date,
       };
       const response = await bookTicket(bookingData);
-      setSuccess(
-        "Ticket booked successfully! Reference: " + response.data.reference
-      );
       setError("");
+      navigate("/payment", { state: { ticket: response.data } });
     } catch (err) {
       setError("Failed to book ticket. Please try again.");
       console.error(err);
@@ -137,15 +138,16 @@ const BuyTicket = () => {
             <h3>Available Buses</h3>
             <ul>
               {buses.map((bus) => (
-                <li key={bus.bus_id} className="bus-item">
+                <li key={bus.busId} className="bus-item">
                   <p>
-                    <strong>{bus.company_name}</strong> ({bus.bus_type})
+                    <strong>{bus.companyName}</strong> ({bus.category})
                   </p>
                   <p>
-                    Route: {bus.source} to {bus.destination}
+                    {/* Route: {bus.source} to {bus.destination} */}
+                    Route: {bus.route.stops}
                   </p>
                   <p>
-                    Departure: {new Date(bus.departure_time).toLocaleString()}
+                    Departure: {new Date(bus.departureTime).toLocaleString()}
                   </p>
                   <p>Price: {bus.price}</p>
                   <button

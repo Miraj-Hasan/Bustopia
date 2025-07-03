@@ -14,6 +14,7 @@ import Review from './Pages/Review/Review';
 import TicketVerification from './Pages/TicketVerification/TicketVerification';
 import ChatWidget from './Components/ChatWidget/ChatWidget';
 import BuyTicket from './Pages/BuyTicket/BuyTicket';
+import Payment from './Pages/Payment/Payment';
 
 function App() {
 
@@ -56,6 +57,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/payment" element={<Payment />} />
         <Route path="/ticket-verification" element={<TicketVerification />} />
 
         <Route path="*" element={<h1>Balchal dio na guru</h1>} />
