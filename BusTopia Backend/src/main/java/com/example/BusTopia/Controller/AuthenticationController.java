@@ -233,6 +233,7 @@ public class AuthenticationController {
         userMap.put("gender", user.getGender());
         userMap.put("phone", user.getPhone());
         userMap.put("image", user.getImageUrl());
+        userMap.put("id", user.getId());
 
         return ResponseEntity.ok(userMap);
     }

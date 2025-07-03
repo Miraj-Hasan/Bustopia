@@ -1,8 +1,12 @@
 package com.example.BusTopia.DatabaseEntity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -10,6 +14,7 @@ import java.util.List;
 @Table(name = "Review")
 public class Review {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer reviewId;
 
     @Column(nullable = false)
@@ -23,7 +28,14 @@ public class Review {
     @JoinColumn(name = "bus_id", nullable = false)
     private Bus bus;
 
-    private List<String> images;
 
-    private float stars;
+    @Column(name = "images") // Added length for long URLs
+//    @Convert(converter = StringListConverter.class)
+    private List<String> images = new ArrayList<>(); // Initialize collection
+
+    private int stars;
+
+    @CreationTimestamp
+    @Column(name = "review_time", nullable = false, updatable = false)
+    private LocalDateTime reviewTime;
 }

@@ -1,0 +1,72 @@
+.buy-ticket-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.form-group input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.search-button, .book-button {
+  padding: 0.75rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.search-button:hover, .book-button:hover {
+  background: #0056b3;
+}
+
+.error-message {
+  color: red;
+  margin: 1rem 0;
+}
+
+.success-message {
+  color: green;
+  margin: 1rem 0;
+}
+
+.bus-results {
+  margin-top: 2rem;
+}
+
+.bus-item {
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.bus-item:last-child {
+  border-bottom: none;
+}
+
+.bus-item p {
+  margin: 0.5rem 0;
+}

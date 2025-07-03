@@ -12,6 +12,8 @@ import ResetPassword from './Pages/ResetPassword/ResetPassword';
 import Verify from './Pages/VerifyEmail/Verify';
 import Review from './Pages/Review/Review';
 import ChatWidget from './Components/ChatWidget/ChatWidget';
+import BuyTicket from './Pages/BuyTicket/BuyTicket';
+
 
 function App() {
 
@@ -46,6 +48,14 @@ function App() {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/oauth-success" element={<OAuthSuccess />} />
         <Route path="/review" element={<Review />} />
+        <Route
+          path="/buy-ticket"
+          element={
+            <ProtectedRoute>
+              <BuyTicket />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="*" element={<h1>Balchal dio na guru</h1>} />
       </Routes>

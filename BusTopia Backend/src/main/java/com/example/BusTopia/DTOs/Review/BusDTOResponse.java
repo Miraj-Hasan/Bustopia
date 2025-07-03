@@ -2,7 +2,6 @@ package com.example.BusTopia.DTOs.Review;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -16,4 +15,5 @@ public class BusDTOResponse {
     private LocalTime startTime;
     private String photo;
     private List<String> stops;
+    private boolean canCurrentUserReview;
 }

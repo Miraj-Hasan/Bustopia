@@ -26,6 +26,11 @@ export function UserNavbar({name}) {
           </Link>
         </li>
         <li>
+          <Link to="/buy-ticket" className="nav-link text-white hover-effect">
+            <i className="fas fa-user-circle me-2"></i> Buy Ticket
+          </Link>
+        </li>
+        <li>
           <Link to="/review" className="nav-link text-white hover-effect">
             <i className="fas fa-user-circle me-2"></i> Review
           </Link>

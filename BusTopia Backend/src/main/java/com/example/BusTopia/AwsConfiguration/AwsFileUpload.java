@@ -13,6 +13,8 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -64,4 +66,46 @@ public class AwsFileUpload {
     private String extractKeyFromUrl(String fileUrl) {
         return fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
     }
+
+    public List<String> uploadMultipleFiles(List<MultipartFile> files) throws Exception {
+        List<String> urls = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+
+            String fileExtension = file.getOriginalFilename().substring(
+                    file.getOriginalFilename().lastIndexOf(".") + 1
+            );
+            String key = UUID.randomUUID().toString() + "." + fileExtension;
+
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName.trim())
+                    .key(key)
+                    .contentType(file.getContentType())
+                    .build();
+
+            try {
+                PutObjectResponse response = s3Client.putObject(
+                        putObjectRequest,
+                        RequestBody.fromBytes(file.getBytes())
+                );
+
+                if (response.sdkHttpResponse().isSuccessful()) {
+                    urls.add("https://" + bucketName + ".s3.amazonaws.com/" + key);
+                }
+            } catch (Exception e) {
+                // Delete any already uploaded files if one fails
+                for (String url : urls) {
+                    deleteFile(url);
+                }
+                throw new ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Failed to upload files: " + e.getMessage()
+                );
+            }
+        }
+
+        return urls;
+    }
+
 }

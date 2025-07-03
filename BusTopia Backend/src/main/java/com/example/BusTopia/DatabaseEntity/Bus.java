@@ -4,8 +4,8 @@ import io.lettuce.core.dynamic.annotation.CommandNaming;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+
 
 @Entity
 @Data
