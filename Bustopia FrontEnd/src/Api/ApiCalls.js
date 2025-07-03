@@ -165,3 +165,33 @@ export const verifyTicket = async (ticketCode, companyName) => {
   );
   return response;
 };
+
+// =================== Buy Ticket API Calls ===================
+
+// Fetch available buses based on source, destination, date, and time
+export const fetchAvailableBuses = async (formData) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/buses/available`, formData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Book a ticket
+export const bookTicket = async (bookingData) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/tickets/book`, bookingData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};

@@ -10,8 +10,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class LLMService {
 
-//    @Value("${huggingface.api.key}")
+    @Value("${groq.api.key}")
     private String apiKey;
+
+    @Value("${groq.api.url}")
+    private String apiUrl;
 
     private final OkHttpClient client = new OkHttpClient();
     private final MediaType mediaType = MediaType.get("application/json");
@@ -19,13 +22,20 @@ public class LLMService {
     public String callOpenAI(String prompt) {
         try {
             ObjectMapper mapper = new ObjectMapper();
+
+            ObjectNode userMessage = mapper.createObjectNode();
+            userMessage.put("role", "user");
+            userMessage.put("content", prompt);
+
             ObjectNode payload = mapper.createObjectNode();
-            payload.put("inputs", prompt);
+            payload.put("model", "llama3-8b-8192"); // ✅ Groq supports llama3-8b/70b or mixtral
+            payload.set("messages", mapper.createArrayNode().add(userMessage));
+            payload.put("temperature", 0.2);
 
             String jsonBody = mapper.writeValueAsString(payload);
 
             Request request = new Request.Builder()
-                    .url("https://api-inference.huggingface.co/models/openai-community/gpt2") // ✅ switched model
+                    .url(apiUrl)
                     .post(RequestBody.create(jsonBody, mediaType))
                     .addHeader("Authorization", "Bearer " + apiKey)
                     .addHeader("Content-Type", "application/json")
@@ -34,12 +44,12 @@ public class LLMService {
             Response response = client.newCall(request).execute();
 
             if (!response.isSuccessful()) {
-                System.out.println("HuggingFace error: " + response.code() + " - " + response.body().string());
+                System.out.println("Groq error: " + response.code() + " - " + response.body().string());
                 return "UNKNOWN";
             }
 
             JsonNode root = mapper.readTree(response.body().string());
-            return root.get(0).get("generated_text").asText().trim(); // ✅ no change in return
+            return root.path("choices").get(0).path("message").path("content").asText().trim();
 
         } catch (Exception e) {
             e.printStackTrace();

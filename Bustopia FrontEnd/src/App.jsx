@@ -12,7 +12,8 @@ import ResetPassword from './Pages/ResetPassword/ResetPassword';
 import Verify from './Pages/VerifyEmail/Verify';
 import Review from './Pages/Review/Review';
 import TicketVerification from './Pages/TicketVerification/TicketVerification';
-
+import ChatWidget from './Components/ChatWidget/ChatWidget';
+import BuyTicket from './Pages/BuyTicket/BuyTicket';
 
 function App() {
 
@@ -24,13 +25,21 @@ function App() {
           element={
             <ProtectedRoute>
               <Home />
+              <ChatWidget />
             </ProtectedRoute>
           }
         />
 
-        <Route path='/profile' element={<ProtectedRoute><Profile /></ProtectedRoute>}></Route>
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        ></Route>
 
-        <Route path='/logout' element={<LogOut/>}/>
+        <Route path="/logout" element={<LogOut />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -39,7 +48,14 @@ function App() {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/oauth-success" element={<OAuthSuccess />} />
         <Route path="/review" element={<Review />} />
-        <Route path="/ticket-verification" element={<TicketVerification />} />
+        <Route
+          path="/buy-ticket"
+          element={
+            <ProtectedRoute>
+              <BuyTicket />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="*" element={<h1>Balchal dio na guru</h1>} />
       </Routes>
@@ -54,6 +70,8 @@ function App() {
         pauseOnHover
         theme="colored"
       />
+      
+
     </>
   );
 }
