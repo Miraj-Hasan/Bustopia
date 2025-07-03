@@ -2,7 +2,11 @@ package com.example.BusTopia.AiIntegration;
 
 import com.example.BusTopia.DatabaseEntity.Bus;
 import com.example.BusTopia.DatabaseEntity.PriceMapping;
+import com.example.BusTopia.MySqlRepositories.BusRepository;
 import com.example.BusTopia.MySqlRepositories.PriceMappingRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
@@ -16,6 +20,9 @@ public class AssistantAgent {
     private final LLMService llm;
 
     private final PriceMappingRepository priceMappingRepository;
+
+    @Autowired
+    private  BusRepository busRepository;
 
     public AssistantAgent(IntentClassifier classifier, LLMService llm,PriceMappingRepository priceMappingRepository ) {
         this.classifier = classifier;
@@ -67,8 +74,8 @@ public class AssistantAgent {
                                 - You must extract **exactly two valid place names**: one source and one destination.
                                 - If the sentence contains **only one** place, or does **not clearly mention two distinct places**, return exactly this string: UNCLEAR
                                 - Do **not guess**, do **not make up** missing locations, and do **not fill in placeholders** like 'unclear'.
-                                - If the sentence has both source and destination Output must be in this format only (all lowercase, no labels, no extra words)-> source:destination
-                                - If either of the source or destination or both is missing Output must be in this format only -> UNCLEAR
+                                - If the sentence has **both source and destination** Output must be in this format only (all lowercase, no labels, no extra words)-> source:destination
+                                - If **either of the source or destination or both** is missing Output must be in this format only -> UNCLEAR
                                 - Do not include anything else — no punctuation, no extra text, and no explanations.
                                 
                                 example :
@@ -90,7 +97,10 @@ public class AssistantAgent {
 
                 System.out.println(output);
                 String[] srcDst = output.split(":");
-                for(String s : srcDst) System.out.println(s.trim());
+                for(String s : srcDst) {
+                    if(s.equalsIgnoreCase("unclear"))
+                        return "Tell me your source & destination — I’ll check prices for you.";
+                }
 
                 List<PriceMapping> priceMapping = priceMappingRepository.findByStop1IgnoreCaseAndStop2IgnoreCase(srcDst[0].trim(),srcDst[1].trim());
                 if(priceMapping.size() == 0)
@@ -207,8 +217,35 @@ public class AssistantAgent {
                         responses.add(bus.getCompanyName() + " — " + time.toString()); // e.g. "Shyamoli Paribahan — 17:30"
                     }
                 }
+                if(responses.size() == 0) {
+                    return "There are no available buses from "+ data[0] + " to " + data[1] + " at " + data[2];
+                }
                 return String.join("\n", responses);
 
+            case BUS_INQUIRY:
+                String busName =  llm.callOpenAI(
+                        """
+                            Your task is to extract the **bus or company name** from the sentence below. The sentence starts with 'user:', which you must ignore.
+                            
+                            ✳️ Rules:
+                            - You must extract **only one** valid bus or transport company name.
+                            - If the sentence clearly mentions a known bus/company name (e.g., "Green Line", "Shyamoli Paribahan", "Hanif", "Shohagh"), return that exact name.
+                            - If the sentence does **not clearly** mention a company name, return exactly: UNCLEAR
+                            - Do **not guess**, do **not infer** based on route, category, or price.
+                            - Output **must be** the company name string exactly as written (preserve spaces and case).
+                            - Do **not** include anything else — no punctuation, no extra text, no labels, no explanations.
+                            
+                            📥 Input: %s
+                            """.formatted(last)
+
+                );
+
+                if(busName.equalsIgnoreCase("UNCLEAR"))
+                    return "Could you please specify what bus are you looking for?";
+
+                Page<Bus> p = busRepository.findSpecificCompanyBus(busName, Pageable.ofSize(1));
+                if(p.hasContent()) return "Of course! " + busName + " tickets are available on our platform.";
+                else return "Sorry, we don't have " + busName + " tickers available on our platform.";
 
             default:
                 return "Sorry, something went wrong while processing your request.";

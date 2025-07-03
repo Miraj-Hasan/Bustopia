@@ -9,5 +9,7 @@ public enum IntentType {
     UNKNOWN,
     REVIEWS,
     CHECK_AVAILABLE_BUSES,
-    COST_INQUIRY
+    COST_INQUIRY,
+
+    BUS_INQUIRY
 }
