@@ -11,9 +11,9 @@ import Register from './Pages/Register/Register';
 import ResetPassword from './Pages/ResetPassword/ResetPassword';
 import Verify from './Pages/VerifyEmail/Verify';
 import Review from './Pages/Review/Review';
+import TicketVerification from './Pages/TicketVerification/TicketVerification';
 import ChatWidget from './Components/ChatWidget/ChatWidget';
 import BuyTicket from './Pages/BuyTicket/BuyTicket';
-
 
 function App() {
 
@@ -56,6 +56,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/ticket-verification" element={<TicketVerification />} />
 
         <Route path="*" element={<h1>Balchal dio na guru</h1>} />
       </Routes>
