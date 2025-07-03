@@ -23,22 +23,27 @@ public class IntentClassifier {
 
     private String buildPrompt(String conversation) {
         return """
-                You are a smart AI assistant that classifies the user's intent based on the most recent user message in the conversation history.
-
-                The full conversation is shown below. Each line starts with either "user:" or "bot:".
-
-                Classify ONLY the **latest user message**, and base your classification on the context of the whole conversation.
-                    
-                ⚠️ Do NOT classify based on a topic that has already been resolved by the bot in an earlier response.In that case only focus of last message by user.
-                ✅ Do classify follow-up messages (like when the user gives more info to answer a previous question).
-                Rule: If the most recent user message is a greeting or polite expression or compliments like "hello", "hi", "thanks", "thank you", "thanks a lot", "cool", "okay", "got it", "Cute" etc., then classify it as SMALL_TALK — regardless of the rest of the conversation.
-                    
-               ❗IMPORTANT:
-                If the user starts with a casual greeting or small talk (e.g., “hey”, “hello”, “what’s up”) but then follows up with a **task-based question** (e.g., booking, cancelling, pricing), classify the latest message according to that task.
-                                
-                Do NOT let previous small talk override the classification of the most recent message.
-                                
-                Valid intent types:
+                You are a smart AI assistant that classifies the user's intent based on the most recent user message in the conversation.           
+                Each line starts with "user:" or "bot:". Only classify the **latest user message** using the full conversation context.
+                            
+                🧠 GENERAL RULES:
+                - Focus on what the user is asking for in their **last message only**.
+                - Ignore topics that were already completed/resolved by the bot.
+                - Always prioritize the user's latest request.
+                - If the last message is **a greeting, compliment, or polite expression** (e.g., "hi", "hello", "thanks", "okay", "cool"), classify it as SMALL_TALK
+                   This rule always takes priority over previous queries like COST_INQUIRY or BOOK_TICKET — if the last user input matches the above tone, treat it as **SMALL_TALK**.
+                                  
+                📌 CLASSIFICATION LOGIC:
+                - If message includes **cancel, remove, undo booking**, it's → CANCEL_TICKET
+                - If message includes **book, reserve, buy ticket** (but NOT about cost), it's → BOOK_TICKET
+                - If message includes **price, cost, fare, how much**, it's → COST_INQUIRY
+                - If message is about **routes** (from X to Y, how to go), it's → FIND_ROUTE
+                - If message is about **which buses are available**, it's → CHECK_AVAILABLE_BUSES
+                - If message is about **bus names**, or asks for specific company/service (e.g., Shyamoli), it's → BUS_INQUIRY
+                - If message is about **reviews, ratings, satisfaction**, it's → REVIEWS
+                - If message is about **complaining**, bad experience, or how to submit a complaint → COMPLAIN
+                            
+                INTENT TYPES:
                 - FIND_ROUTE
                 - BOOK_TICKET
                 - CANCEL_TICKET
@@ -48,54 +53,44 @@ public class IntentClassifier {
                 - REVIEWS
                 - CHECK_AVAILABLE_BUSES
                 - COST_INQUIRY
-
-                Examples:
-
+                - BUS_INQUIRY
+                            
+                ✅ EXAMPLES:                            
                 Conversation:
-                user: I want to go to Sylhet
-                bot: Sure! When do you want to travel?
-                user: Hello
-                → SMALL_TALK
-
+                user: Can I cancel the ticket later?  
+                → CANCEL_TICKET
+                            
                 Conversation:
-                user: I want to book a ticket
-                bot: Please enter source and destination.
-                user: How much is the fare?
+                user: how/where I book a ticket here?  
+                → BOOK_TICKET
+                            
+                Conversation:
+                user: How much are Dhaka-Bogura tickets?  
                 → COST_INQUIRY
-
+      
                 Conversation:
-                user: What's the cost of Dhaka tickets?
-                bot: Tell me your source & destination — I’ll check prices for you.
-                user: Bogura to Dhaka
+                user: Are there buses to Sylhet?  
+                → CHECK_AVAILABLE_BUSES
+                            
+                Conversation:
+                user: What's the cost of Dhaka tickets?  
+                bot: Tell me your source & destination  
+                user: Bogura to Dhaka  
                 → COST_INQUIRY
-                   
+                            
                 Conversation:
-                user: What’s the cost of Dhaka to Bogura?
-                bot: Bus A, Non-AC , 900. Bus B, AC , 600
-                user: Thanks a lot
-                → SMALL_TALK
-                
-                conversation:
-                user:are there any buses from Dhaka to Bogura?
-                bot:could you have any specific time in your mind?
-                user:in the morning
-                -> CHECK_AVAILABLE_BUSES
-                
-                conversation:
-                user: blah blah blah
-                bot: blah blah blah
-                user: are there any buses available for bogura?
-                -> CHECK_AVAILABLE_BUSES
-                
-                conversation:
-                bot: blah blah blah
-                user: how do i cancel ticket?
-                -> CANCEL_TICKET
-                
-                Now classify the **most recent user message** in this conversation:
-                %s
+                user: Where do I get the bus from Dhaka to Sylhet?  
+                → FIND_ROUTE
+                                
+                Conversation:
+                user: What’s the cost of Dhaka tickets?
+                bot: Bus : Shyamoli Paribahan , category : Non-AC, price : 550.0\s
+                user: Are GreenLine buses available here?
+                → BUS_INQUIRY
 
-                Respond ONLY with one of the intent types in ALL CAPS (e.g., FIND_ROUTE). Do NOT explain.
+                Now classify the most recent user message in this conversation:
+                %s                            
+                Respond ONLY with one of the intent types in ALL CAPS. Do NOT explain.
                 """.formatted(conversation);
     }
 
