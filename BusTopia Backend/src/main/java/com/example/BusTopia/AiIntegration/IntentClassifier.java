@@ -42,6 +42,7 @@ public class IntentClassifier {
                 - If message is about **bus names**, or asks for specific company/service (e.g., Shyamoli), it's → BUS_INQUIRY
                 - If message is about **reviews, ratings, satisfaction**, it's → REVIEWS
                 - If message is about **complaining**, bad experience, or how to submit a complaint → COMPLAIN
+                - If message is about **going , travelling , visiting* to a **place** -> FIND_ROUTE
                             
                 INTENT TYPES:
                 - FIND_ROUTE

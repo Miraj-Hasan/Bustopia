@@ -2,6 +2,7 @@ package com.example.BusTopia.MySqlRepositories;
 
 import com.example.BusTopia.DatabaseEntity.Bus;
 import com.example.BusTopia.DatabaseEntity.Review;
+import com.example.BusTopia.DatabaseEntity.Route;
 import com.example.BusTopia.DatabaseEntity.Ticket;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,5 +29,7 @@ public interface BusRepository extends JpaRepository<Bus, Integer> {
 
     @Query("SELECT t.bus FROM Ticket t WHERE t.user.id = :userId")
     List<Bus> getTravelledBuses(@Param("userId") int userId);
+
+    List<Bus> findByRouteIn(List<Route> routes);
 
 }

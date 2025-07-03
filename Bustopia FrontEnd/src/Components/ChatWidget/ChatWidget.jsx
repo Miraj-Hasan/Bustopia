@@ -136,7 +136,11 @@ const ChatWidget = () => {
                         </div>
                       </div>
                     )}
-                    <div>{msg.text}</div>
+                    {msg.role === 'bot' ? (
+                      <div style={{ whiteSpace: 'pre-line' }}>{msg.text}</div>
+                    ) : (
+                      <div>{msg.text}</div>
+                    )}
                   </div>
                 </div>
               ))}

@@ -12,9 +12,8 @@ public class PriceMapping {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer mappingId;
 
-    @ManyToOne
-    @JoinColumn(name = "bus_id", nullable = false)
-    private Bus bus;
+    @Column(nullable = false)
+    private String category;
 
     @Column(nullable = false)
     private String stop1;

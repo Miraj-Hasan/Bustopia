@@ -2,8 +2,10 @@ package com.example.BusTopia.AiIntegration;
 
 import com.example.BusTopia.DatabaseEntity.Bus;
 import com.example.BusTopia.DatabaseEntity.PriceMapping;
+import com.example.BusTopia.DatabaseEntity.Route;
 import com.example.BusTopia.MySqlRepositories.BusRepository;
 import com.example.BusTopia.MySqlRepositories.PriceMappingRepository;
+import com.example.BusTopia.MySqlRepositories.RouteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +25,9 @@ public class AssistantAgent {
 
     @Autowired
     private  BusRepository busRepository;
+
+    @Autowired
+    private RouteRepository routeRepository;
 
     public AssistantAgent(IntentClassifier classifier, LLMService llm,PriceMappingRepository priceMappingRepository ) {
         this.classifier = classifier;
@@ -108,8 +113,8 @@ public class AssistantAgent {
 
                 output = "";
                 for( PriceMapping pm : priceMapping){
-                    Bus bus = pm.getBus();
-                    output += ("Bus : " + bus.getCompanyName() + " , category : " + bus.getCategory() + ", price : " + pm.getPrice()+"\n") ;
+                    String category = pm.getCategory();
+                    output += ( "category : " + category + ", price : " + pm.getPrice()+"\n") ;
                 }
 
                 return output;
@@ -193,15 +198,21 @@ public class AssistantAgent {
                 if(data[2].equalsIgnoreCase("unclear"))
                     return "Do you have any preferred time? (morning/noon/evening/night)?";
 
-                List<PriceMapping> prices = priceMappingRepository.findByStop1IgnoreCaseAndStop2IgnoreCase(data[0].trim(),data[1].trim());
-                if(prices.size() == 0)
+                //all data are available as source destination and time
+
+                String source = capitalize(data[0].trim());
+                String destination = capitalize(data[1].trim());
+
+                List<Route> routes = routeRepository.findRoutesContainingBothStops(source,destination);
+                if(routes.size() == 0)
                     return "Sorry, we don't have any bus service from mentioned source to destination.";
 
                 String timeCategory = data[2].toLowerCase();
                 List<String> responses = new ArrayList<>();
 
-                for (PriceMapping pm :prices ) {
-                    Bus bus=pm.getBus();
+                List<Bus> buses = busRepository.findByRouteIn(routes);
+
+                for (Bus bus :buses ) {
                     System.out.println(bus.getStartTime());
                     LocalTime time = bus.getStartTime();
 
@@ -250,5 +261,9 @@ public class AssistantAgent {
             default:
                 return "Sorry, something went wrong while processing your request.";
         }
+    }
+    private static String capitalize(String input) {
+        if (input == null || input.isEmpty()) return input;
+        return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
     }
 }
