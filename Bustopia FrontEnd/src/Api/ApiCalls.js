@@ -154,3 +154,14 @@ export const submitReview = async (reviewData) => {
   });
   return response;
 };
+
+export const verifyTicket = async (ticketCode, companyName) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/api/verifyTicket`,
+    {
+      params: { ticketCode, companyName },
+      withCredentials: true,
+    }
+  );
+  return response;
+};
