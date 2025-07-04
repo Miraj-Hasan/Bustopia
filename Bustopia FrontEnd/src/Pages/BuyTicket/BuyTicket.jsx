@@ -1,7 +1,12 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { UserContext } from "../../Context/UserContext";
 import { useNavigate } from "react-router-dom";
-import { fetchAvailableBuses, bookTicket } from "../../Api/ApiCalls";
+import {
+  fetchAvailableBuses,
+  bookTicket,
+  getAllStops,
+  getDestinationsForSource,
+} from "../../Api/ApiCalls";
 import "./BuyTicket.css";
 
 import { Navbar } from "../../Components/Navbar/Navbar";
@@ -16,13 +21,46 @@ const BuyTicket = () => {
     date: "",
     time: "",
   });
+
   const [buses, setBuses] = useState([]);
-  const [selectedBus, setSelectedBus] = useState(null);
+  const [stops, setStops] = useState([]);
+  const [availableDestinations, setAvailableDestinations] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  useEffect(() => {
+    const loadStops = async () => {
+      try {
+        const response = await getAllStops();
+        setStops(response.data);
+      } catch (err) {
+        console.error("Failed to load stops", err);
+      }
+    };
+    loadStops();
+  }, []);
+
+  const handleInputChange = async (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // If source is changed, dynamically update destinations
+    if (name === "source") {
+      try {
+        const response = await getDestinationsForSource(value);
+        setAvailableDestinations(response.data);
+
+        // Clear destination if it is no longer valid
+        setFormData((prev) => ({
+          ...prev,
+          destination: response.data.includes(prev.destination)
+            ? prev.destination
+            : "",
+        }));
+      } catch (err) {
+        console.error("Failed to load destinations", err);
+      }
+    }
   };
 
   const handleSearchBuses = async (e) => {
@@ -54,11 +92,8 @@ const BuyTicket = () => {
       const bookingData = {
         userId: user.id,
         busId: bus.busId,
-        routeId: bus.route.routeId,
-        departureTime: bus.startTime,
-        source: bus.route.stops[0],
-        destination: bus.route.stops[bus.route.stops.length - 1],
-        date: formData.date,
+        routeId: bus.routeId,
+        departureTime: bus.departureTime,
       };
       const response = await bookTicket(bookingData);
       setError("");
@@ -71,37 +106,50 @@ const BuyTicket = () => {
 
   return (
     <div className="d-flex">
-      {/* Sidebar */}
       <div style={{ width: "250px" }}>
         <Navbar />
       </div>
       <div className="buy-ticket-container">
         <h2>Book Your Bus Ticket</h2>
 
-        {/* Search Form */}
         <form onSubmit={handleSearchBuses} className="search-form">
           <div className="form-group">
             <label htmlFor="source">From:</label>
-            <input
-              type="text"
+            <select
               id="source"
               name="source"
               value={formData.source}
               onChange={handleInputChange}
               required
-            />
+            >
+              <option value="">Select source</option>
+              {stops.map((stop, idx) => (
+                <option key={idx} value={stop}>
+                  {stop}
+                </option>
+              ))}
+            </select>
           </div>
+
           <div className="form-group">
             <label htmlFor="destination">To:</label>
-            <input
-              type="text"
+            <select
               id="destination"
               name="destination"
               value={formData.destination}
               onChange={handleInputChange}
               required
-            />
+              disabled={!formData.source}
+            >
+              <option value="">Select destination</option>
+              {availableDestinations.map((stop, idx) => (
+                <option key={idx} value={stop}>
+                  {stop}
+                </option>
+              ))}
+            </select>
           </div>
+
           <div className="form-group">
             <label htmlFor="date">Date:</label>
             <input
@@ -113,6 +161,7 @@ const BuyTicket = () => {
               required
             />
           </div>
+
           <div className="form-group">
             <label htmlFor="time">Preferred Time:</label>
             <input
@@ -123,16 +172,15 @@ const BuyTicket = () => {
               onChange={handleInputChange}
             />
           </div>
+
           <button type="submit" className="search-button">
             Search Buses
           </button>
         </form>
 
-        {/* Error/Success Messages */}
         {error && <p className="error-message">{error}</p>}
         {success && <p className="success-message">{success}</p>}
 
-        {/* Bus Results */}
         {buses.length > 0 && (
           <div className="bus-results">
             <h3>Available Buses</h3>
@@ -140,11 +188,10 @@ const BuyTicket = () => {
               {buses.map((bus) => (
                 <li key={bus.busId} className="bus-item">
                   <p>
-                    <strong>{bus.companyName}</strong> ({bus.category})
+                    <strong>{bus.companyName}</strong> ({bus.busType})
                   </p>
                   <p>
-                    {/* Route: {bus.source} to {bus.destination} */}
-                    Route: {bus.route.stops}
+                    Route: {bus.source} to {bus.destination}
                   </p>
                   <p>
                     Departure: {new Date(bus.departureTime).toLocaleString()}
