@@ -201,6 +201,7 @@ export const fetchAvailableBuses = async (formData) => {
         "Content-Type": "application/json",
       },
     });
+    console.log("Available buses response:", response.data);
     return response;
   } catch (error) {
     throw error;

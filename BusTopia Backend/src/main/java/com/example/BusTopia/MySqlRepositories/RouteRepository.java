@@ -10,7 +10,8 @@ import java.util.List;
 
 public interface RouteRepository extends JpaRepository<Route , Integer> {
 
-    @Query(value = "SELECT * FROM route WHERE stops @> ARRAY[:stop1, :stop2]::varchar[]", nativeQuery = true)
+    @Query(value = "SELECT * FROM route WHERE stops @> ARRAY[:stop1, :stop2]::varchar[] " +
+            "AND array_position(stops, :stop1) < array_position(stops, :stop2)", nativeQuery = true)
     List<Route> findRoutesContainingBothStops(@Param("stop1") String stop1, @Param("stop2") String stop2);
 
 }

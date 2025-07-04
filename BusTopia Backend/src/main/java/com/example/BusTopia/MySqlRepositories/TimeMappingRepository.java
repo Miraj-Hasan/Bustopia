@@ -11,9 +11,10 @@ import java.util.Optional;
 
 @Repository
 public interface TimeMappingRepository extends JpaRepository<TimeMapping, Integer> {
-    @Query("SELECT t.duration FROM TimeMapping t " +
-            "WHERE (t.stop1 = :stop1 AND t.stop2 = :stop2) " +
-            "OR (t.stop1 = :stop2 AND t.stop2 = :stop1)")
+    @Query(value = "SELECT duration FROM time_mapping " +
+            "WHERE (stop1 = :stop1 AND stop2 = :stop2) OR (stop1 = :stop2 AND stop2 = :stop1) " +
+            "ORDER BY (stop1 = :stop1 AND stop2 = :stop2) DESC " +
+            "LIMIT 1", nativeQuery = true)
     Optional<Duration> findDurationBetweenStops(
             @Param("stop1") String stop1,
             @Param("stop2") String stop2

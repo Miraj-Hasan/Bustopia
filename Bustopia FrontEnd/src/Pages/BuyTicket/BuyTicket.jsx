@@ -8,7 +8,6 @@ import {
   getDestinationsForSource,
 } from "../../Api/ApiCalls";
 import "./BuyTicket.css";
-
 import { Navbar } from "../../Components/Navbar/Navbar";
 
 const BuyTicket = () => {
@@ -19,7 +18,6 @@ const BuyTicket = () => {
     source: "",
     destination: "",
     date: "",
-    time: "",
   });
 
   const [buses, setBuses] = useState([]);
@@ -40,17 +38,25 @@ const BuyTicket = () => {
     loadStops();
   }, []);
 
+  const getTodayDate = () => {
+    return new Date().toISOString().split("T")[0];
+  };
+
+  const getMaxDate = () => {
+    const max = new Date();
+    max.setDate(max.getDate() + 14);
+    return max.toISOString().split("T")[0];
+  };
+
   const handleInputChange = async (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // If source is changed, dynamically update destinations
     if (name === "source") {
       try {
         const response = await getDestinationsForSource(value);
         setAvailableDestinations(response.data);
 
-        // Clear destination if it is no longer valid
         setFormData((prev) => ({
           ...prev,
           destination: response.data.includes(prev.destination)
@@ -92,8 +98,10 @@ const BuyTicket = () => {
       const bookingData = {
         userId: user.id,
         busId: bus.busId,
-        routeId: bus.routeId,
-        departureTime: bus.departureTime,
+        source: formData.source,
+        destination: formData.destination,
+        date: formData.date,
+        time: bus.departureTime,
       };
       const response = await bookTicket(bookingData);
       setError("");
@@ -102,6 +110,22 @@ const BuyTicket = () => {
       setError("Failed to book ticket. Please try again.");
       console.error(err);
     }
+  };
+
+  // Format date + time (e.g., 2025-07-03 + 06:00:00.0000)
+  const formatFullDateTime = (dateStr, timeStr) => {
+    if (!dateStr || !timeStr) return "";
+
+    const [hourStr, minuteStr] = timeStr.slice(0, 5).split(":");
+    let hour = parseInt(hourStr, 10);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    hour = hour % 12 || 12;
+
+    const dateObj = new Date(dateStr);
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    const dateFormatted = dateObj.toLocaleDateString(undefined, options);
+
+    return `${dateFormatted} — ${hour}:${minuteStr} ${ampm}`;
   };
 
   return (
@@ -158,18 +182,9 @@ const BuyTicket = () => {
               name="date"
               value={formData.date}
               onChange={handleInputChange}
+              min={getTodayDate()}
+              max={getMaxDate()}
               required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="time">Preferred Time:</label>
-            <input
-              type="time"
-              id="time"
-              name="time"
-              value={formData.time}
-              onChange={handleInputChange}
             />
           </div>
 
@@ -188,15 +203,21 @@ const BuyTicket = () => {
               {buses.map((bus) => (
                 <li key={bus.busId} className="bus-item">
                   <p>
-                    <strong>{bus.companyName}</strong> ({bus.busType})
+                    <strong>{bus.companyName}</strong> ({bus.category})
                   </p>
                   <p>
-                    Route: {bus.source} to {bus.destination}
+                    Route:{" "}
+                    {bus.route &&
+                    bus.route.stops &&
+                    Array.isArray(bus.route.stops)
+                      ? bus.route.stops.join(" → ")
+                      : "No route available"}
                   </p>
                   <p>
-                    Departure: {new Date(bus.departureTime).toLocaleString()}
+                    Departure:{" "}
+                    {formatFullDateTime(formData.date, bus.departureTime)}
                   </p>
-                  <p>Price: {bus.price}</p>
+                  <p>Price: {bus.price} ৳</p>
                   <button
                     onClick={() => handleBookTicket(bus)}
                     className="book-button"
