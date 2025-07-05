@@ -4,6 +4,7 @@ import com.example.BusTopia.DTOs.BuyTicket.BusSearchRequest;
 import com.example.BusTopia.DTOs.BuyTicket.BusSearchResponse;
 import com.example.BusTopia.DatabaseEntity.Bus;
 import com.example.BusTopia.MySqlRepositories.PriceMappingRepository;
+import com.example.BusTopia.MySqlRepositories.SeatAvailabilityMappingRepository;
 import com.example.BusTopia.Services.BusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import java.util.List;
 public class BusController {
     private final BusService busService;
     private final PriceMappingRepository priceMappingRepository;
+    private final SeatAvailabilityMappingRepository seatAvailabilityRepository;
 
     @PostMapping("/available")
     public ResponseEntity<List<BusSearchResponse>> getAvailableBuses(@RequestBody BusSearchRequest request) {
@@ -26,8 +28,14 @@ public class BusController {
 
         List<BusSearchResponse> responses = buses.stream().map(bus -> {
             LocalTime startTime = busService.getStartTimeForAStop(bus, request.getSource());
-            int price = priceMappingRepository.getPrice(request.getSource(), request.getDestination(), bus.getCategory())
+            int price = priceMappingRepository
+                    .getPrice(request.getSource(), request.getDestination(), bus.getCategory())
                     .orElse(0);
+
+            int availableSeats = seatAvailabilityRepository
+                    .findByBusAndJourneyDate(bus, request.getDate())
+                    .map(seatMap -> seatMap.getAvailableSeats())
+                    .orElse(0); // Default to 0 if no mapping
 
             return new BusSearchResponse(
                     bus.getBusId(),
@@ -38,6 +46,7 @@ public class BusController {
                     request.getDestination(),
                     startTime,
                     price,
+                    availableSeats,
                     bus.getRoute()
             );
         }).toList();

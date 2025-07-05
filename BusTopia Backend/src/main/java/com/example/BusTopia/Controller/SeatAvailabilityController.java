@@ -1,31 +1,31 @@
 package com.example.BusTopia.Controller;
 
-import com.example.BusTopia.DatabaseEntity.SeatAvailabilityMapping;
-import com.example.BusTopia.MySqlRepositories.SeatAvailabilityMappingRepository;
-import lombok.RequiredArgsConstructor;
+import com.example.BusTopia.Services.SeatAvailabilityService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
-@RequiredArgsConstructor
-public class SeatController {
+@RequestMapping("/api/seat-availability")
+public class SeatAvailabilityController {
 
-    private final SeatAvailabilityMappingRepository seatRepo;
+    @Autowired
+    private SeatAvailabilityService seatAvailabilityService;
 
-    @GetMapping("/seats")
+    // Get booked seats for a specific bus ID and journey date
+    @GetMapping("/bus/{busId}/date/{journeyDate}")
     public ResponseEntity<Map<String, Long>> getBookedSeats(
-            @RequestParam Integer busId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
-    ) {
-        var toret = seatRepo.findByBus_BusIdAndJourneyDate(busId, date)
-                .map(mapping -> ResponseEntity.ok(mapping.getBookedSeats()))
-                .orElse(ResponseEntity.notFound().build());
-        System.out.println(toret);
-        return toret;
+            @PathVariable Integer busId,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate journeyDate) {
+        return seatAvailabilityService.getBookedSeatsByBusIdAndDate(busId, journeyDate)
+                .map(bookedSeats -> ResponseEntity.ok(bookedSeats))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
