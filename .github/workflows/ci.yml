@@ -62,48 +62,45 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push
 
-    services:
-      backend:
-        image: fiihad/bustopia-backend:latest
-        ports:
-          - 8443:8443
-        env:
-          FRONTEND_ORIGIN:       "https://localhost:3000"
-          BACKEND_ORIGIN:        "https://localhost:8443"
-          DB_URL:                ${{ secrets.DB_URL }}
-          DB_USER:               ${{ secrets.DB_USER }}
-          DB_PASS:               ${{ secrets.DB_PASS }}
-          REDIS_HOST:            ${{ secrets.REDIS_HOST }}
-          REDIS_PORT:            ${{ secrets.REDIS_PORT }}
-          REDIS_PASSWORD:        ${{ secrets.REDIS_PASSWORD }}
-          JWT_SECRET:            ${{ secrets.JWT_SECRET }}
-          JWT_EXPIRATION:        ${{ secrets.JWT_EXPIRATION }}
-          GOOGLE_CLIENT_ID:      ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET:  ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_REDIRECT_URI:   ${{ secrets.GOOGLE_REDIRECT_URI }}
-          MAIL_USERNAME:         ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD:         ${{ secrets.MAIL_PASSWORD }}
-          AWS_ACCESS_KEY:        ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_KEY:        ${{ secrets.AWS_SECRET_KEY }}
-          AWS_REGION:            ${{ secrets.AWS_REGION }}
-          AWS_BUCKET_NAME:       ${{ secrets.AWS_BUCKET_NAME }}
-          OPENAI_API_KEY:        ${{ secrets.OPENAI_API_KEY }}
-          GROK_KEY:              ${{ secrets.GROK_KEY }}
-          GROK_URL:              ${{ secrets.GROK_URL }}
-        options: >-
-          --health-cmd="sh -c 'wget --no-check-certificate -q --spider https://localhost:8443/actuator/health 2>/dev/null || (exec 3<>/dev/tcp/localhost/8443 && echo -e \"GET /actuator/health HTTP/1.1\r\nHost: localhost\r\n\r\n\" >&3 && grep -q \"UP\" <&3)'"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-      frontend:
-        image: fiihad/bustopia-frontend:latest
-        ports:
-          - 3000:443
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Start backend container
+        run: |
+          docker run -d \
+            --name backend \
+            -p 8443:8443 \
+            -e FRONTEND_ORIGIN="https://localhost:3000" \
+            -e BACKEND_ORIGIN="https://localhost:8443" \
+            -e DB_URL="${{ secrets.DB_URL }}" \
+            -e DB_USER="${{ secrets.DB_USER }}" \
+            -e DB_PASS="${{ secrets.DB_PASS }}" \
+            -e REDIS_HOST="${{ secrets.REDIS_HOST }}" \
+            -e REDIS_PORT="${{ secrets.REDIS_PORT }}" \
+            -e REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}" \
+            -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            -e JWT_EXPIRATION="${{ secrets.JWT_EXPIRATION }}" \
+            -e GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
+            -e GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+            -e GOOGLE_REDIRECT_URI="${{ secrets.GOOGLE_REDIRECT_URI }}" \
+            -e MAIL_USERNAME="${{ secrets.MAIL_USERNAME }}" \
+            -e MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
+            -e AWS_ACCESS_KEY="${{ secrets.AWS_ACCESS_KEY }}" \
+            -e AWS_SECRET_KEY="${{ secrets.AWS_SECRET_KEY }}" \
+            -e AWS_REGION="${{ secrets.AWS_REGION }}" \
+            -e AWS_BUCKET_NAME="${{ secrets.AWS_BUCKET_NAME }}" \
+            -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            -e GROK_KEY="${{ secrets.GROK_KEY }}" \
+            -e GROK_URL="${{ secrets.GROK_URL }}" \
+            fiihad/bustopia-backend:latest
+
+      - name: Start frontend container
+        run: |
+          docker run -d \
+            --name frontend \
+            -p 3000:443 \
+            fiihad/bustopia-frontend:latest
 
       - name: Wait for services to start
         run: |
