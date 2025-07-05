@@ -100,16 +100,15 @@ jobs:
         image: fiihad/bustopia-frontend:latest
         ports:
           - 3000:443
-        options: >-
-          --health-cmd="sh -c 'exec 3<>/dev/tcp/localhost/80 2>/dev/null || exec 3<>/dev/tcp/localhost/443 2>/dev/null'"
-          --health-interval=15s
-          --health-timeout=10s
-          --health-retries=3
-          --health-start-period=15s
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Wait for services to start
+        run: |
+          echo "Waiting for services to start up..."
+          sleep 30
 
       - name: Wait for backend HTTPS
         run: |
