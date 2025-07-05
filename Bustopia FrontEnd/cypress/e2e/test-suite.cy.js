@@ -448,6 +448,38 @@ describe('Bustopia Frontend E2E Test Suite', () => {
       cy.visit('/ticket-verification')
     })
 
+    it('should check backend API connectivity', () => {
+      // Simple test to check if backend is reachable
+      cy.request({
+        method: 'GET',
+        url: 'https://localhost:8443/api/ping',
+        failOnStatusCode: false
+      }).then((response) => {
+        cy.log('Backend API response:', response.status, response.body)
+        expect(response.status).to.eq(200)
+      })
+    })
+
+    it('should check ticket verification API directly', () => {
+      // Test the ticket verification API endpoint directly
+      cy.request({
+        method: 'GET',
+        url: 'https://localhost:8443/api/verifyTicket',
+        qs: {
+          ticketCode: 'TKT-2651-20250625-8F3A9CD0FI',
+          companyName: 'SR Travels'
+        },
+        failOnStatusCode: false
+      }).then((response) => {
+        cy.log('Ticket verification API response:', response.status, response.body)
+        if (response.status !== 200) {
+          cy.log('API Error - Status:', response.status)
+          cy.log('API Error - Body:', response.body)
+        }
+        expect(response.status).to.eq(200)
+      })
+    })
+
     it('should display ticket verification form with all elements', () => {
       // Check main heading
       cy.contains('Ticket Verification').should('be.visible')
@@ -511,6 +543,22 @@ describe('Bustopia Frontend E2E Test Suite', () => {
       // Check loading state
       cy.get('button').should('contain', 'Verifying...')
       cy.get('.spinner-border-sm').should('be.visible')
+      
+      // Add debugging - wait a bit and check what's actually on the page
+      cy.wait(3000)
+      cy.get('body').then($body => {
+        cy.log('Page content after 3 seconds:', $body.text())
+      })
+      
+      // Check for any error messages first
+      cy.get('body').then($body => {
+        if ($body.find('.alert-danger').length > 0) {
+          cy.log('Found error alert:', $body.find('.alert-danger').text())
+        }
+        if ($body.find('.Toastify__toast--error').length > 0) {
+          cy.log('Found error toast:', $body.find('.Toastify__toast--error').text())
+        }
+      })
       
       // Wait for verification to complete
       cy.contains('Ticket verification successful!', { timeout: 15000 }).should('be.visible')
