@@ -22,7 +22,8 @@ public class TicketController {
                 req.getDate(),
                 req.getTime(),
                 req.getSource(),
-                req.getDestination()
+                req.getDestination(),
+                req.getSeats()
         );
         return ResponseEntity.ok(ticket);
     }

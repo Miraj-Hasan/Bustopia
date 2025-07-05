@@ -1,5 +1,6 @@
 package com.example.BusTopia.DatabaseEntity;
 
+import com.example.BusTopia.DatabaseEntity.Converters.StringListConverter;
 import com.example.BusTopia.MySqlRepositories.TimeMappingRepository;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -38,6 +39,8 @@ public class Ticket {
     @Column(nullable = false)
     private LocalDate date;
 
+    @Convert(converter = StringListConverter.class)
+    @Column(columnDefinition = "TEXT")
     private List<String> seats;
 
     @Column(nullable = false)

@@ -16,5 +16,6 @@ public class BusSearchResponse {
     private String destination;
     private LocalTime departureTime;
     private int price;
+    private int availableSeats;
     Route route;
 }
