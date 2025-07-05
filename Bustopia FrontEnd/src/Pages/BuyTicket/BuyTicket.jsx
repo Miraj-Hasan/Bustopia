@@ -25,12 +25,17 @@ const BuyTicket = () => {
   const [availableDestinations, setAvailableDestinations] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
     const loadStops = async () => {
       try {
         const response = await getAllStops();
-        setStops(response.data);
+        const sorted = response.data.sort((a, b) =>
+          a.localeCompare(b, undefined, { sensitivity: "base" })
+        );
+        setStops(sorted);
       } catch (err) {
         console.error("Failed to load stops", err);
       }
@@ -55,11 +60,14 @@ const BuyTicket = () => {
     if (name === "source") {
       try {
         const response = await getDestinationsForSource(value);
-        setAvailableDestinations(response.data);
+        const sorted = response.data.sort((a, b) =>
+          a.localeCompare(b, undefined, { sensitivity: "base" })
+        );
+        setAvailableDestinations(sorted);
 
         setFormData((prev) => ({
           ...prev,
-          destination: response.data.includes(prev.destination)
+          destination: sorted.includes(prev.destination)
             ? prev.destination
             : "",
         }));
@@ -78,12 +86,16 @@ const BuyTicket = () => {
     }
 
     try {
+      setLoading(true);
+      setHasSearched(true);
       const response = await fetchAvailableBuses(formData);
       setBuses(response.data);
       setError("");
     } catch (err) {
       setError("Failed to fetch buses. Please try again.");
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -112,7 +124,6 @@ const BuyTicket = () => {
     }
   };
 
-  // Format date + time (e.g., 2025-07-03 + 06:00:00.0000)
   const formatFullDateTime = (dateStr, timeStr) => {
     if (!dateStr || !timeStr) return "";
 
@@ -195,37 +206,41 @@ const BuyTicket = () => {
 
         {error && <p className="error-message">{error}</p>}
         {success && <p className="success-message">{success}</p>}
+        {loading && <p className="loading-message">Searching for buses...</p>}
 
-        {buses.length > 0 && (
+        {!loading && hasSearched && buses.length === 0 && (
+          <p className="no-bus-message">No bus found for the selected day.</p>
+        )}
+
+        {buses.length > 0 && !loading && (
           <div className="bus-results">
-            <h3>Available Buses</h3>
+            <h3>Available Buses ({buses.length})</h3>
             <ul>
-              {buses.map((bus) => (
-                <li key={bus.busId} className="bus-item">
-                  <p>
-                    <strong>{bus.companyName}</strong> ({bus.category})
-                  </p>
-                  <p>
-                    Route:{" "}
-                    {bus.route &&
-                    bus.route.stops &&
-                    Array.isArray(bus.route.stops)
-                      ? bus.route.stops.join(" → ")
-                      : "No route available"}
-                  </p>
-                  <p>
-                    Departure:{" "}
-                    {formatFullDateTime(formData.date, bus.departureTime)}
-                  </p>
-                  <p>Price: {bus.price} ৳</p>
-                  <button
-                    onClick={() => handleBookTicket(bus)}
-                    className="book-button"
-                  >
-                    Book Now
-                  </button>
-                </li>
-              ))}
+              {buses
+                .slice()
+                .sort((a, b) => a.departureTime.localeCompare(b.departureTime))
+                .map((bus) => (
+                  <li key={bus.busId} className="bus-item">
+                    <p>
+                      <strong>{bus.companyName}</strong> ({bus.category})
+                    </p>
+                    <p>
+                      Route:{" "}
+                      {bus.route?.stops?.join(" → ") || "No route available"}
+                    </p>
+                    <p>
+                      Departure:{" "}
+                      {formatFullDateTime(formData.date, bus.departureTime)}
+                    </p>
+                    <p>Price: {bus.price} ৳</p>
+                    <button
+                      onClick={() => handleBookTicket(bus)}
+                      className="book-button"
+                    >
+                      Book Now
+                    </button>
+                  </li>
+                ))}
             </ul>
           </div>
         )}

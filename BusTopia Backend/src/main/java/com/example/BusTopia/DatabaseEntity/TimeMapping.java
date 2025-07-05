@@ -18,6 +18,6 @@ public class TimeMapping {
     private String stop2;
 
     @Column(nullable = false)
-    private Duration duration;
+    private Integer duration;
 
 }

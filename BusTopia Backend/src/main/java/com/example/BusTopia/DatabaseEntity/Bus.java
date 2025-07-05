@@ -30,4 +30,8 @@ public class Bus {
     @ManyToOne
     @JoinColumn(name = "route_id", foreignKey = @ForeignKey(name = "route_id_FK"))
     private Route route;
+
+    @ManyToOne
+    @JoinColumn(name = "layout_id")
+    private SeatLayout seatLayout;
 }
