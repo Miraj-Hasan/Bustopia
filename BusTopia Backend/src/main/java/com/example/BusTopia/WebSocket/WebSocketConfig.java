@@ -23,6 +23,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(new ChatWebSocketHandler(assistantAgent), "/chat")
-                .setAllowedOrigins("https://172.167.170.46:3000","https://app.172.167.170.46.nip.io:3000",FRONTEND_ORIGIN);
+                .setAllowedOrigins("https://localhost:3000","https://172.167.170.46:3000","https://app.172.167.170.46.nip.io:3000",FRONTEND_ORIGIN);
     }
 }
