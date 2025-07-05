@@ -143,7 +143,7 @@ jobs:
           timeout 60 bash -c 'until nc -z localhost 3000; do sleep 1; done' || (echo "Frontend timeout after 60s" && exit 1)
 
       - name: Install dependencies & run Cypress
-        working-directory: ./Bustopia\ FrontEnd
+        working-directory: "./Bustopia FrontEnd"
         run: |
           npm ci
           npm run build
