@@ -222,3 +222,33 @@ export const bookTicket = async (bookingData) => {
     throw error;
   }
 };
+
+// Get seat layout for a specific bus
+export const getSeatLayout = async (busId) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/seat-layouts/bus/${busId}`, {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Get booked seats for a specific bus and date
+export const getBookedSeats = async (busId, date) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/seat-availability/bus/${busId}/date/${date}`, {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
