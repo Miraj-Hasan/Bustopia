@@ -107,15 +107,30 @@ jobs:
           echo "Waiting for services to start up..."
           sleep 30
 
+      - name: Check container status
+        run: |
+          echo "Backend container status:"
+          docker ps -a --filter name=backend
+          echo "Frontend container status:"
+          docker ps -a --filter name=frontend
+          echo "Backend logs:"
+          docker logs backend --tail 20
+          echo "Frontend logs:"
+          docker logs frontend --tail 20
+
       - name: Wait for backend HTTPS
         run: |
           echo "Waiting for backend on port 8443…"
-          until nc -z localhost 8443; do sleep 1; done
+          timeout 60 bash -c 'until nc -z localhost 8443; do sleep 1; done' || (echo "Backend timeout after 60s" && exit 1)
 
       - name: Wait for frontend HTTPS
         run: |
           echo "Waiting for frontend on port 3000…"
-          until nc -z localhost 3000; do sleep 1; done
+          echo "Checking port binding:"
+          docker port frontend
+          echo "Checking if nginx is running in container:"
+          docker exec frontend ps aux | grep nginx || echo "nginx not found"
+          timeout 60 bash -c 'until nc -z localhost 3000; do sleep 1; done' || (echo "Frontend timeout after 60s" && exit 1)
 
       - name: Install dependencies & run Cypress
         working-directory: ./Bustopia\ FrontEnd
