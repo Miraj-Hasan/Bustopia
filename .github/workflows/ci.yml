@@ -116,7 +116,9 @@ jobs:
           echo "Backend logs:"
           docker logs backend --tail 20
           echo "Frontend logs:"
-          docker logs frontend --tail 20
+          docker logs frontend --tail 50 || echo "Could not get frontend logs"
+          echo "Frontend container inspect:"
+          docker inspect frontend --format='{{.State.Status}} {{.State.ExitCode}} {{.State.Error}}'
 
       - name: Wait for backend HTTPS
         run: |
