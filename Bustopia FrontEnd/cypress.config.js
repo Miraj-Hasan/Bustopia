@@ -26,8 +26,14 @@ export default defineConfig({
     watchForFileChanges: false,
     chromeWebSecurity: false,
     
-    setupNodeEvents() {
-      // implement node event listeners here
+    setupNodeEvents(on, config) {
+      // Handle uncaught exceptions from WebSocket errors
+      on('task', {
+        log(message) {
+          console.log(message);
+          return null;
+        }
+      });
     },
   },
 });

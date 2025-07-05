@@ -68,3 +68,17 @@ Cypress.Commands.add('verifyChatMessage', (message) => {
   // Use more specific selector and timeout for user messages
   cy.get('.message.user', { timeout: 5000 }).should('contain', message).and('be.visible')
 })
+
+// Wait for WebSocket connection to be established
+Cypress.Commands.add('waitForChatConnection', () => {
+  // Wait for the Send button to be visible and enabled (not showing "Connecting...")
+  cy.get('[data-cy="chat-send-button"]', { timeout: 15000 })
+    .should('be.visible')
+    .and('contain.text', 'Send')
+    .and('not.be.disabled');
+  
+  // Also ensure the textarea is enabled
+  cy.get('.chat-container textarea', { timeout: 15000 })
+    .should('be.visible')
+    .and('not.be.disabled');
+});

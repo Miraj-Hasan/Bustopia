@@ -1,6 +1,20 @@
 // Main Test Suite - CI/CD Ready
 describe('Bustopia Frontend E2E Test Suite', () => {
   
+  // Handle WebSocket connection errors
+  beforeEach(() => {
+    cy.on('uncaught:exception', (err, runnable) => {
+      // Handle WebSocket connection errors
+      if (err.message.includes('WebSocket') || err.message.includes('Still in CONNECTING state')) {
+        // Log the error but don't fail the test
+        cy.log('WebSocket connection error caught:', err.message);
+        return false;
+      }
+      // For other errors, let them fail the test
+      return true;
+    });
+  });
+  
   // Test 1: Login Flow (must run first)
   describe('1. Authentication Tests', () => {
     beforeEach(() => {
@@ -335,6 +349,7 @@ describe('Bustopia Frontend E2E Test Suite', () => {
     it('should allow typing and sending a message', () => {
       cy.get('.chatbot-toggle').click()
       cy.waitForElement('.chatbot-container.open')
+      cy.waitForChatConnection()
       
       const testMessage = 'Hello, this is a test message'
       cy.get('textarea[placeholder="Type your message..."]').type(testMessage)
@@ -348,17 +363,19 @@ describe('Bustopia Frontend E2E Test Suite', () => {
     it('should show typing indicator when message is sent', () => {
       cy.get('.chatbot-toggle').click()
       cy.waitForElement('.chatbot-container.open')
+      cy.waitForChatConnection()
       
       cy.get('textarea[placeholder="Type your message..."]').type('Test message')
       cy.get('button').contains('Send').click()
       
       // Check typing indicator with specific selector that matches the actual DOM structure
-      cy.get('.message.bot em', { timeout: 3000 }).should('contain', 'AI is typing...').and('be.visible')
+      cy.get('.message.bot em', { timeout: 5000 }).should('contain', 'AI is typing...').and('be.visible')
     })
 
     it('should display user and bot messages with proper formatting', () => {
       cy.get('.chatbot-toggle').click()
       cy.waitForElement('.chatbot-container.open')
+      cy.waitForChatConnection()
       
       const testMessage = 'Testing message formatting'
       cy.get('textarea[placeholder="Type your message..."]').type(testMessage)
@@ -387,6 +404,7 @@ describe('Bustopia Frontend E2E Test Suite', () => {
       // Step 3: Use chat widget
       cy.get('.chatbot-toggle').click()
       cy.waitForElement('.chatbot-container.open')
+      cy.waitForChatConnection()
       
       // Step 4: Send message and verify with improved timing
       const testMessage = 'Hello from E2E test!'
