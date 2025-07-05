@@ -15,10 +15,12 @@ public class TicketController {
 
     @PostMapping("/book")
     public ResponseEntity<Ticket> book(@RequestBody BookTicketRequest req) {
+        System.out.println(req);
         Ticket ticket = ticketService.bookTicket(
                 req.getUserId(),
                 req.getBusId(),
                 req.getDate(),
+                req.getTime(),
                 req.getSource(),
                 req.getDestination()
         );

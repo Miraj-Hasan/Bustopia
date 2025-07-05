@@ -168,6 +168,30 @@ export const verifyTicket = async (ticketCode, companyName) => {
 
 // =================== Buy Ticket API Calls ===================
 
+// Get all stops
+export const getAllStops = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/all_stops`, {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+// Get destinations based on source
+export const getDestinationsForSource = async (source) => {
+  const response = await axios.get(`${API_BASE_URL}/api/destinations`, {
+    params: { source },
+    withCredentials: true,
+  });
+  return response;
+};
+
+
 // Fetch available buses based on source, destination, date, and time
 export const fetchAvailableBuses = async (formData) => {
   try {

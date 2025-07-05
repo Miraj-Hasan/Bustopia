@@ -3,10 +3,7 @@ package com.example.BusTopia.Services;
 import com.example.BusTopia.DatabaseEntity.Bus;
 import com.example.BusTopia.DatabaseEntity.Ticket;
 import com.example.BusTopia.DatabaseEntity.UserEntity;
-import com.example.BusTopia.MySqlRepositories.BusRepository;
-import com.example.BusTopia.MySqlRepositories.TicketRepository;
-import com.example.BusTopia.MySqlRepositories.TimeMappingRepository;
-import com.example.BusTopia.MySqlRepositories.UserRepository;
+import com.example.BusTopia.MySqlRepositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,27 +26,32 @@ public class TicketService {
     private final BusRepository busRepository;
     private final UserRepository userRepository;
     private final TimeMappingRepository timeMappingRepository;
+    private final PriceMappingRepository priceMappingRepository;
 
-    public Ticket bookTicket(Long userId, Integer busId, LocalDate date, String source, String destination) {
+    public Ticket bookTicket(Long userId, Integer busId, LocalDate date, LocalTime time, String source, String destination) {
         Bus bus = busRepository.findById(busId)
                 .orElseThrow(() -> new RuntimeException("Bus not found"));
 
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        int price = priceMappingRepository.getPrice(source, destination, bus.getCategory())
+                .orElse(0);
+
         // Build ticket
         Ticket ticket = new Ticket();
         ticket.setBus(bus);
         ticket.setUser(user);
         ticket.setDate(date);
+        ticket.setScheduledTime(time);
         ticket.setSource(source);
         ticket.setDestination(destination);
         ticket.setBookingTime(LocalTime.now());
         ticket.setStatus("BOOKED");
-        ticket.setPrice(100);
+        ticket.setPrice(price);
 
         // Generate ticketCode
-        ticket.generateTicketCodeAndCalculateStartTime();
+        ticket.generateTicketCode();
 
         return ticketRepository.save(ticket);
     }
