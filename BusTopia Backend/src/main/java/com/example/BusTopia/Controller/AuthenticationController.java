@@ -117,6 +117,10 @@ public class AuthenticationController {
         try {
             RegisterRequest registerRequest = new ObjectMapper().readValue(userData, RegisterRequest.class);
             byte[] imageBytes = (image != null && !image.isEmpty()) ? image.getBytes() : null;
+
+            if(userRepository.findByEmail(registerRequest.getEmail()) != null)
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Registration failed! Email already exists.");
+
             String code = tempRegistrationService.cacheRegistration(registerRequest, imageBytes);
 
             String frontendBaseUrl = FRONT_END + "/verify";

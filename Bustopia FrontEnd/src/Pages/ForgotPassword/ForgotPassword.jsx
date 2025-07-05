@@ -33,17 +33,15 @@ function ForgotPassword() {
               <div className="card-body p-4 p-lg-5 text-black">
                 <form onSubmit={submitHandler}>
                   {/* Logo + Name */}
-                  <div className="text-center mb-5">
+                  <div className="text-center ">
                     <img
                       src={assets.logo}
-                      height={48}
-                      width={48}
+                      height={200}
+                      width={200}
                       className="me-2"
                       alt="logo"
                     />
-                    <h3 className="fw-bold mb-0" style={{ color: "blue" }}>
-                      {title}
-                    </h3>
+                    
                   </div>
 
                   {/* Email */}

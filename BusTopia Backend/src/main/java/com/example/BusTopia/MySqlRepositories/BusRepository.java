@@ -40,5 +40,6 @@ public interface BusRepository extends JpaRepository<Bus, Integer> {
     @Query(value = "SELECT * FROM bus LIMIT 10", nativeQuery = true)
     List<Bus> findAvailableBuses();
 
+    List<Bus> findByCompanyNameIgnoreCase(String companyName);
 
 }

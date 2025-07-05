@@ -2,9 +2,11 @@ package com.example.BusTopia.AiIntegration;
 
 import com.example.BusTopia.DatabaseEntity.Bus;
 import com.example.BusTopia.DatabaseEntity.PriceMapping;
+import com.example.BusTopia.DatabaseEntity.Review;
 import com.example.BusTopia.DatabaseEntity.Route;
 import com.example.BusTopia.MySqlRepositories.BusRepository;
 import com.example.BusTopia.MySqlRepositories.PriceMappingRepository;
+import com.example.BusTopia.MySqlRepositories.ReviewRepository;
 import com.example.BusTopia.MySqlRepositories.RouteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,6 +30,9 @@ public class AssistantAgent {
 
     @Autowired
     private RouteRepository routeRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     public AssistantAgent(IntentClassifier classifier, LLMService llm,PriceMappingRepository priceMappingRepository ) {
         this.classifier = classifier;
@@ -254,8 +259,25 @@ public class AssistantAgent {
                 if(busName.equalsIgnoreCase("UNCLEAR"))
                     return "Could you please specify what bus are you looking for?";
 
+                double rating = 0.0;
                 Page<Bus> p = busRepository.findSpecificCompanyBus(busName, Pageable.ofSize(1));
-                if(p.hasContent()) return "Of course! " + busName + " tickets are available on our platform.";
+
+                if(p.hasContent()){
+                    List<Bus> allBusesOfSpecificCompany = busRepository.findByCompanyNameIgnoreCase(busName);
+                    List<Integer> busIds = new ArrayList<>();
+                    for(Bus bus : allBusesOfSpecificCompany) busIds.add(bus.getBusId());
+
+                    List<Review> reviews = reviewRepository.findByBusBusIdIn(busIds);
+
+                    for(Review review : reviews)
+                        rating += review.getStars();
+                    rating = rating / reviews.size();
+                    String formatted = String.format("%.2f", rating);
+
+                    String finalRating = rating == 0? "N/A" : String.valueOf(formatted);
+
+                    return "Of course! " + busName + " tickets are available on our platform. With an average bus rating of " + finalRating + " /5.";
+                }
                 else return "Sorry, we don't have " + busName + " tickers available on our platform.";
 
             default:

@@ -1,5 +1,6 @@
 package com.example.BusTopia.MySqlRepositories;
 
+import com.example.BusTopia.DatabaseEntity.Bus;
 import com.example.BusTopia.DatabaseEntity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -19,4 +20,7 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
 
     @Query("SELECT r FROM Review r WHERE r.bus.busId = :busId")
     List<Review> findByBusId(int busId);
+
+    List<Review> findByBusBusIdIn(List<Integer> busIds);
+
 }
