@@ -30,6 +30,8 @@ services:
       - AWS_REGION=${AWS_REGION}
       - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GROK_KEY=${GROK_KEY}
+      - GROK_URL=${GROK_URL}
     restart: unless-stopped
 
   frontend:
