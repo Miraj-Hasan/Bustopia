@@ -91,7 +91,7 @@ jobs:
           GROK_KEY:              ${{ secrets.GROK_KEY }}
           GROK_URL:              ${{ secrets.GROK_URL }}
         options: >-
-          --health-cmd=--health-cmd="sh -c 'exec 3<>/dev/tcp/localhost/8443 && echo OK >&3 || exit 1'"
+          --health-cmd="sh -c 'wget --no-check-certificate -q --spider https://localhost:8443/actuator/health 2>/dev/null || (exec 3<>/dev/tcp/localhost/8443 && echo -e \"GET /actuator/health HTTP/1.1\r\nHost: localhost\r\n\r\n\" >&3 && grep -q \"UP\" <&3)'"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
