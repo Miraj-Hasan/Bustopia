@@ -66,10 +66,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create Docker network
+        run: |
+          docker network create bustopia-network
+
       - name: Start backend container
         run: |
           docker run -d \
             --name backend \
+            --network bustopia-network \
+            -p 8080:8080 \
             -p 8443:8443 \
             -e FRONTEND_ORIGIN="https://localhost:3000" \
             -e BACKEND_ORIGIN="https://localhost:8443" \
@@ -99,6 +105,8 @@ jobs:
         run: |
           docker run -d \
             --name frontend \
+            --network bustopia-network \
+            -p 3001:80 \
             -p 3000:443 \
             fiihad/bustopia-frontend:latest
 
