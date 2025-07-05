@@ -53,7 +53,9 @@ public class BusService {
             String nextStop = routeStops.get(i + 1);
 
             // Find the time mapping between these stops
-            Duration segmentDuration = timeMappingRepository.findDurationBetweenStops(currentStop, nextStop)
+            Duration segmentDuration = timeMappingRepository
+                    .findDurationBetweenStops(currentStop, nextStop)
+                    .map(Duration::ofMinutes)
                     .orElseThrow(() -> new IllegalStateException(
                             String.format("No time mapping found between %s and %s", currentStop, nextStop)
                     ));

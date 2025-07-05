@@ -1416,3 +1416,96 @@ VALUES
     ('Royal Coach', 'DHK-RC-30-1', 'Non-AC', '2025-06-10T06:00:00', NULL, 30),
     ('Royal Coach', 'DHK-RC-30-2', 'Non-AC', '2025-06-10T08:00:00', NULL, 30);
 
+
+
+
+================ Buy Ticket ================
+
+-- Insert AC 2x2 layout (4 seats per row)
+INSERT INTO seat_layout (name, category, layout)
+VALUES (
+  'AC 2x2 Standard',
+  'AC',
+  '[
+    ["A1", "A2", "", "A3", "A4"],
+    ["B1", "B2", "", "B3", "B4"],
+    ["C1", "C2", "", "C3", "C4"],
+    ["D1", "D2", "", "D3", "D4"]
+  ]'
+);
+
+-- Insert Non-AC 3x2 layout (5 seats per row)
+INSERT INTO seat_layout (name, category, layout)
+VALUES (
+  'Non-AC 3x2',
+  'Non-AC',
+  '[
+    ["A1", "A2", "A3", "", "A4", "A5"],
+    ["B1", "B2", "B3", "", "B4", "B5"],
+    ["C1", "C2", "C3", "", "C4", "C5"]
+  ]'
+);
+
+
+-- Assign AC layout to all AC buses
+UPDATE bus
+SET layout_id = (
+    SELECT layout_id FROM seat_layout
+    WHERE category ILIKE 'AC'
+    LIMIT 1
+)
+WHERE category ILIKE 'AC';
+
+-- Assign Non-AC layout to all Non-AC buses
+UPDATE bus
+SET layout_id = (
+    SELECT layout_id FROM seat_layout
+    WHERE category ILIKE 'Non-AC'
+    LIMIT 1
+)
+WHERE category ILIKE 'Non-AC';
+
+
+-- Create a helper function in Supabase for date generation (PostgreSQL CTE)
+
+DO $$
+DECLARE
+  d DATE;
+  b RECORD;
+  layout_json TEXT;
+  seat_labels TEXT[];
+  total_seats INT;
+BEGIN
+  FOR b IN SELECT * FROM bus WHERE layout_id IS NOT NULL LOOP
+    -- Get all seat labels from the layout
+    SELECT layout::jsonb INTO layout_json
+    FROM seat_layout
+    WHERE layout_id = b.layout_id;
+
+    SELECT array_agg(seat ORDER BY seat) INTO seat_labels
+    FROM jsonb_array_elements(layout_json::jsonb) AS row,
+         jsonb_array_elements_text(row) AS seat
+    WHERE seat IS NOT NULL AND seat <> '';
+
+    total_seats := array_length(seat_labels, 1);
+
+    FOR i IN 0..14 LOOP
+      d := CURRENT_DATE + i;
+
+      INSERT INTO seat_availability_mapping (
+        bus_id,
+        journey_date,
+        total_seats,
+        available_seats,
+        booked_seats
+      )
+      VALUES (
+        b.bus_id,
+        d,
+        total_seats,
+        total_seats,
+        '{}'::jsonb
+      );
+    END LOOP;
+  END LOOP;
+END $$;

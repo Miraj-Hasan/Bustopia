@@ -15,7 +15,7 @@ public interface TimeMappingRepository extends JpaRepository<TimeMapping, Intege
             "WHERE (stop1 = :stop1 AND stop2 = :stop2) OR (stop1 = :stop2 AND stop2 = :stop1) " +
             "ORDER BY (stop1 = :stop1 AND stop2 = :stop2) DESC " +
             "LIMIT 1", nativeQuery = true)
-    Optional<Duration> findDurationBetweenStops(
+    Optional<Integer> findDurationBetweenStops(
             @Param("stop1") String stop1,
             @Param("stop2") String stop2
     );
