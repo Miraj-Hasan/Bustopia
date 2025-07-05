@@ -20,7 +20,6 @@ const ChatWidget = () => {
   const [isTyping, setIsTyping] = useState(false);
   const ws = useRef(null);
   const messagesEndRef = useRef(null);
-  const [isConnected, setIsConnected] = useState(false);
 
   // Get username from sessionStorage
   const getUserName = () => {
@@ -41,53 +40,24 @@ const ChatWidget = () => {
   };
 
   useEffect(() => {
-    const connectWebSocket = () => {
-      ws.current = new WebSocket(getWebSocketUrl());
+    ws.current = new WebSocket(getWebSocketUrl());
 
-      ws.current.onopen = () => {
-        console.log('WebSocket connected successfully');
-        setIsConnected(true);
+    ws.current.onmessage = (event) => {
+      setIsTyping(false);
+      const msg = {
+        role: "bot",
+        text: event.data,
+        timestamp: new Date().toLocaleTimeString(),
       };
-
-      ws.current.onclose = (event) => {
-        console.log('WebSocket closed:', event.code, event.reason);
-        setIsConnected(false);
-        
-        // Retry connection after 2 seconds if not manually closed
-        if (event.code !== 1000) {
-          setTimeout(() => {
-            console.log('Attempting to reconnect WebSocket...');
-            connectWebSocket();
-          }, 2000);
-        }
-      };
-
-      ws.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        setIsConnected(false);
-      };
-
-      ws.current.onmessage = (event) => {
-        setIsTyping(false);
-        const msg = {
-          role: "bot",
-          text: event.data,
-          timestamp: new Date().toLocaleTimeString(),
-        };
-        setMessages((prev) => {
-          const updated = [...prev, msg];
-          localStorage.setItem("chatMessages", JSON.stringify(updated));
-          return updated;
-        });
-      };
+      setMessages((prev) => {
+        const updated = [...prev, msg];
+        localStorage.setItem("chatMessages", JSON.stringify(updated));
+        return updated;
+      });
     };
 
-    connectWebSocket();
-
     return () => {
-      if (ws.current) {
-        ws.current.close(1000, 'Component unmounting');
-      }
+      if (ws.current) ws.current.close();
     };
   }, []);
 
@@ -98,8 +68,7 @@ const ChatWidget = () => {
   }, [messages]);
 
   const sendMessage = () => {
-    if (!input.trim() || !isConnected) return;
-    
+    if (!input.trim()) return;
     const msg = {
       role: "user",
       text: input,
@@ -113,16 +82,7 @@ const ChatWidget = () => {
     setIsTyping(true);
     // Send conversation in format: [bot: message, user: message, ...]
     const conversationHistory = [...messages, msg].map(m => `${m.role}: ${m.text}`);
-    
-    // Check WebSocket state before sending
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify(conversationHistory));
-    } else {
-      console.error('WebSocket is not connected');
-      setIsTyping(false);
-      return;
-    }
-    
+    ws.current.send(JSON.stringify(conversationHistory));
     setInput("");
   };
 
@@ -200,15 +160,9 @@ const ChatWidget = () => {
                 onKeyDown={handleKeyDown}
                 placeholder="Type your message..."
                 rows={1}
-                disabled={!isConnected}
               />
-              <button 
-                className="btn btn-success" 
-                onClick={sendMessage}
-                disabled={!isConnected || !input.trim()}
-                data-cy="chat-send-button"
-              >
-                {isConnected ? 'Send' : 'Connecting...'}
+              <button className="btn btn-success" onClick={sendMessage}>
+                Send
               </button>
             </div>
           </div>
