@@ -352,8 +352,8 @@ describe('Bustopia Frontend E2E Test Suite', () => {
       cy.get('textarea[placeholder="Type your message..."]').type('Test message')
       cy.get('button').contains('Send').click()
       
-      // Check typing indicator with timeout
-      cy.contains('AI is typing...', { timeout: 5000 }).should('exist')
+      // Check typing indicator with specific selector that matches the actual DOM structure
+      cy.get('.message.bot em', { timeout: 3000 }).should('contain', 'AI is typing...').and('be.visible')
     })
 
     it('should display user and bot messages with proper formatting', () => {
@@ -388,11 +388,13 @@ describe('Bustopia Frontend E2E Test Suite', () => {
       cy.get('.chatbot-toggle').click()
       cy.waitForElement('.chatbot-container.open')
       
-      // Step 4: Send message and verify
+      // Step 4: Send message and verify with improved timing
       const testMessage = 'Hello from E2E test!'
       cy.get('textarea[placeholder="Type your message..."]').type(testMessage)
       cy.get('button').contains('Send').click()
-      cy.verifyChatMessage(testMessage)
+      
+      // Wait for the message to appear in the chat with specific timeout
+      cy.get('.message.user', { timeout: 8000 }).should('contain', testMessage).and('be.visible')
       
       // Step 5: Close chat
       cy.get('.chatbot-close').click()

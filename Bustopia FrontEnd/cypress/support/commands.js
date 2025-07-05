@@ -65,6 +65,6 @@ Cypress.Commands.add('clearAllStorage', () => {
 
 // Custom assertion for chat message
 Cypress.Commands.add('verifyChatMessage', (message) => {
-  cy.contains(message).should('be.visible')
-  cy.get('.message').contains(message).should('exist')
+  // Use more specific selector and timeout for user messages
+  cy.get('.message.user', { timeout: 5000 }).should('contain', message).and('be.visible')
 })
