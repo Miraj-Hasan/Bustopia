@@ -15,33 +15,7 @@ env:
   IMAGE_FRONTEND: fiihad/bustopia-frontend
 
 jobs:
-  backend-tests:
-    name: Run Backend Unit Tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: Run tests
-        working-directory: "Bustopia Backend"
-        run: mvn clean test
   build-and-push:
-    needs: backend-tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -83,10 +57,37 @@ jobs:
           cache-from: type=registry,ref=${{ env.IMAGE_FRONTEND }}:buildcache
           cache-to:   type=registry,ref=${{ env.IMAGE_FRONTEND }}:buildcache,mode=max
 
+  backend-tests:
+    name: Run Backend Unit Tests
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Run tests
+        working-directory: "./Bustopia Backend"
+        run: mvn clean test        
+
   e2e-tests:
     name: Run Cypress E2E against pushed images
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: backend-tests
 
     steps:
       - name: Checkout code
