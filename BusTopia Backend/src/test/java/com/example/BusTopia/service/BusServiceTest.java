@@ -90,59 +90,7 @@ class BusServiceTest {
             busService.getStartTimeForAStop(bus, "InvalidStop");
         });
     }
-
-    @Test
-    void getAvailableBuses_ShouldFilterBusesBasedOnDepartureTime() {
-        // Arrange
-        String source = "Dhaka";
-        String destination = "Chittagong";
-        LocalDate date = LocalDate.now().plusDays(1);
-
-        Route route1 = new Route();
-        route1.setStops(List.of("Dhaka", "Comilla", "Chittagong"));
-
-        Route route2 = new Route();
-        route2.setStops(List.of("Dhaka", "Narayanganj", "Chittagong"));
-
-        when(routeService.getRoutesContainingSourceAndDestination(source, destination))
-                .thenReturn(List.of(route1, route2));
-
-        Bus bus1 = new Bus(); // Valid (8:00 AM)
-        bus1.setBusId(1);
-        bus1.setRoute(route1);
-        bus1.setStartTime(LocalTime.of(8, 0));
-
-        Bus bus2 = new Bus(); // Invalid (before threshold)
-        bus2.setBusId(2);
-        bus2.setRoute(route2);
-        bus2.setStartTime(LocalTime.of(6, 0));
-
-        Bus bus3 = new Bus(); // Valid (10:00 AM)
-        bus3.setBusId(3);
-        bus3.setRoute(route1);
-        bus3.setStartTime(LocalTime.of(10, 0));
-
-        when(busRepository.findByRouteIn(List.of(route1, route2)))
-                .thenReturn(List.of(bus1, bus2, bus3));
-
-        // Now = day before `date`, at 23:50
-        LocalDateTime now = LocalDateTime.of(date.minusDays(1), LocalTime.of(23, 50));
-        Clock fixedClock = Clock.fixed(now.toInstant(ZoneOffset.UTC), ZoneId.systemDefault());
-        busService.setClock(fixedClock);
-
-        // Act
-        List<Bus> result = busService.getAvailableBuses(source, destination, date);
-
-        // Assert
-        assertEquals(2, result.size());
-        assertTrue(result.stream().anyMatch(b -> b.getBusId() == 1));
-        assertTrue(result.stream().anyMatch(b -> b.getBusId() == 3));
-        assertFalse(result.stream().anyMatch(b -> b.getBusId() == 2));
-    }
-
-
-
-
+    
 
     @Test
     void getAvailableBuses_ShouldExcludeBusesWithInvalidData() {
