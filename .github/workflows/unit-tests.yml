@@ -1,0 +1,150 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+  workflow_dispatch:
+    inputs:
+      test-type:
+        description: 'Type of tests to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - frontend
+        - backend
+
+jobs:
+  frontend-unit-tests:
+    name: Frontend Unit Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test-type == 'frontend' || github.event.inputs.test-type == 'all' || github.event.inputs.test-type == null
+    
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: './Bustopia FrontEnd/package-lock.json'
+
+      - name: Install frontend dependencies
+        working-directory: ./Bustopia FrontEnd
+        run: npm ci
+
+      - name: Run frontend unit tests with coverage
+        working-directory: ./Bustopia FrontEnd
+        run: |
+          npm run test:ci:unit
+          echo "✅ Frontend unit tests completed successfully"
+
+      - name: Generate coverage report
+        working-directory: ./Bustopia FrontEnd
+        run: |
+          echo "📊 Coverage Summary:"
+          cat coverage/coverage-summary.json || echo "No coverage summary found"
+          echo "📈 Coverage Report generated in coverage/ directory"
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./Bustopia FrontEnd/coverage/lcov.info
+          flags: frontend-unit-tests
+          name: frontend-coverage
+          fail_ci_if_error: false
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-test-results
+          path: |
+            ./Bustopia FrontEnd/coverage/
+            ./Bustopia FrontEnd/test-results/
+          retention-days: 30
+
+  backend-unit-tests:
+    name: Backend Unit Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test-type == 'backend' || github.event.inputs.test-type == 'all' || github.event.inputs.test-type == null
+    
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+          cache-dependency-path: './BusTopia Backend/pom.xml'
+
+      - name: Run backend unit tests
+        working-directory: ./BusTopia Backend
+        run: |
+          ./mvnw clean test
+          echo "✅ Backend unit tests completed successfully"
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: |
+            ./BusTopia Backend/target/surefire-reports/
+            ./BusTopia Backend/target/site/jacoco/
+          retention-days: 30
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [frontend-unit-tests, backend-unit-tests]
+    if: always()
+    
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Download frontend test results
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-test-results
+          path: ./frontend-results
+
+      - name: Download backend test results
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-test-results
+          path: ./backend-results
+
+      - name: Generate test summary
+        run: |
+          echo "## 🧪 Unit Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -d "./frontend-results" ]; then
+            echo "### Frontend Tests" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Frontend unit tests completed" >> $GITHUB_STEP_SUMMARY
+            if [ -f "./frontend-results/coverage/coverage-summary.json" ]; then
+              echo "- 📊 Coverage report available" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -d "./backend-results" ]; then
+            echo "### Backend Tests" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Backend unit tests completed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "### Test Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend test results: Available in artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend test results: Available in artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage reports: Available in artifacts" >> $GITHUB_STEP_SUMMARY 
