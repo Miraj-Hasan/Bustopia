@@ -15,6 +15,7 @@ import com.example.BusTopia.SecurityConfiguration.JwtUtility;
 import com.example.BusTopia.Services.TempPasswordResetService;
 import com.example.BusTopia.Services.TempRegistrationService;
 import com.example.BusTopia.Services.UserService;
+import com.example.BusTopia.Utils.ByteArrayMultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -32,7 +33,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.mock.web.MockMultipartFile;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -145,6 +145,35 @@ public class AuthenticationController {
         }
     }
 
+//    @GetMapping("/verify-registration")
+//    public ResponseEntity<?> verify(@RequestParam String code, @RequestParam String email) {
+//        try {
+//            CachedRegistration cached = tempRegistrationService.getRegistration(code);
+//            if (cached == null || !cached.getRegisterRequest().getEmail().equalsIgnoreCase(email)) {
+//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or expired link.");
+//            }
+//
+//            MultipartFile imageFile = null;
+//            byte[] imageBytes = cached.getImageBytes();
+//            if (imageBytes != null && imageBytes.length > 0) {
+//                // Replace MockMultipartFile with our new implementation
+//                imageFile = new ByteArrayMultipartFile(
+//                        imageBytes,
+//                        "file",
+//                        "user-image.jpg",
+//                        "image/jpeg"
+//                );
+//            }
+//
+//            userService.register(cached.getRegisterRequest(), imageFile);
+//            tempRegistrationService.delete(code);
+//            return ResponseEntity.ok("Registration successful!");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Verification failed: " + e.getMessage());
+//        }
+//    }
+
+
     @GetMapping("/verify-registration")
     public ResponseEntity<?> verify(@RequestParam String code, @RequestParam String email) {
         try {
@@ -156,7 +185,13 @@ public class AuthenticationController {
             MultipartFile imageFile = null;
             byte[] imageBytes = cached.getImageBytes();
             if (imageBytes != null && imageBytes.length > 0) {
-                imageFile = new MockMultipartFile("file", "image.jpg", "image/jpeg", imageBytes);
+                // Replace MockMultipartFile with our new implementation
+                imageFile = new ByteArrayMultipartFile(
+                        imageBytes,
+                        "file",
+                        "user-image.jpg",
+                        "image/jpeg"
+                );
             }
 
             userService.register(cached.getRegisterRequest(), imageFile);

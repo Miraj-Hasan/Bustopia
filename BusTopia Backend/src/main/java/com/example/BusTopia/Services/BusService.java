@@ -7,10 +7,7 @@ import com.example.BusTopia.MySqlRepositories.TimeMappingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +17,12 @@ public class BusService {
     private final BusRepository busRepository;
     private final RouteService routeService;
     private final TimeMappingRepository timeMappingRepository;
+    private Clock clock = Clock.systemDefaultZone(); // default clock
+
+    // Setter for test override
+    public void setClock(Clock clock) {
+        this.clock = clock;
+    }
 
     public LocalTime getStartTimeForAStop(Bus bus, String stop) {
         // Get the bus's base start time
@@ -72,7 +75,7 @@ public class BusService {
         List<Route> routes = routeService.getRoutesContainingSourceAndDestination(source, destination);
 
         // Get current time and the threshold time (current time + 15 minutes)
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         LocalDateTime thresholdTime = now.plusMinutes(15);
 
         // Get buses for the routes and filter based on start time at source
