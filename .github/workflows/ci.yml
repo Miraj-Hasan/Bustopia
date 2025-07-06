@@ -65,9 +65,7 @@ jobs:
       - name: Run backend unit tests
         working-directory: ./BusTopia Backend
         run: |
-          run: |
-          chmod +x mvnw
-          ./mvnw clean test
+          mvn clean test
           echo "Backend unit tests completed successfully"
 
   # ────────────────
