@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 public class TicketVerificationService {
 
     @Value("${backend.origin}")
-    private String backendUrl;
+    public String backendUrl;
     private final TicketRepository ticketRepository;
 
     public TicketVerificationService(TicketRepository ticketRepository) {

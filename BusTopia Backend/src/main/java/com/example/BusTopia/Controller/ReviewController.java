@@ -77,7 +77,8 @@ public class ReviewController {
     public ResponseEntity<?> submitReview(@Valid @RequestBody ReviewRequest reviewRequest) {
         try {
             ReviewDTOResponse response = reviewService.submitReview(reviewRequest);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            // return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

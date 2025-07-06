@@ -132,7 +132,7 @@ function Review() {
                 images: imageUrls || [],
             });
 
-            if (response.status === 200) {
+            if (response.status === 201) {
                 toast.success("Review submitted successfully!");
                 setReviewText("");
                 setStarRating(0);
