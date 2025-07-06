@@ -112,7 +112,7 @@ public class AssistantAgent {
                         return "Tell me your source & destination — I’ll check prices for you.";
                 }
 
-                List<PriceMapping> priceMapping = priceMappingRepository.findByStop1IgnoreCaseAndStop2IgnoreCase(srcDst[0].trim(),srcDst[1].trim());
+                List<PriceMapping> priceMapping = priceMappingRepository.findByStopsBidirectional(srcDst[0].trim(),srcDst[1].trim());
                 if(priceMapping.size() == 0)
                     return "Sorry, we don't have any bus service from mentioned source to destination.";
 

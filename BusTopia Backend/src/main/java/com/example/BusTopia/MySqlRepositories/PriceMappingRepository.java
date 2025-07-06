@@ -47,4 +47,9 @@ public interface PriceMappingRepository extends JpaRepository<PriceMapping,Integ
     """, nativeQuery = true)
         List<String> findDistinctDestinationsFromSource(@Param("source") String source);
 
+    @Query("SELECT p FROM PriceMapping p WHERE " +
+            "(LOWER(p.stop1) = LOWER(:stop1) AND LOWER(p.stop2) = LOWER(:stop2)) OR " +
+            "(LOWER(p.stop1) = LOWER(:stop2) AND LOWER(p.stop2) = LOWER(:stop1))")
+    List<PriceMapping> findByStopsBidirectional(@Param("stop1") String stop1, @Param("stop2") String stop2);    
+
 }
