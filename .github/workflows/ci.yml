@@ -38,7 +38,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Run tests
-        working-directory: "./Bustopia Backend"
+        working-directory: "Bustopia Backend"
         run: mvn clean test
   build-and-push:
     needs: backend-tests
