@@ -61,13 +61,22 @@ const BuyTicket = () => {
     return max.toISOString().split("T")[0];
   };
 
-  const handleInputChange = async (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-    if (name === "source") {
-      try {
-        const response = await getDestinationsForSource(value);
+  // Fetch destinations when source changes
+  useEffect(() => {
+    if (!formData.source) {
+      setAvailableDestinations([]);
+      setFormData((prev) => ({ ...prev, destination: '' }));
+      return;
+    }
+    let isMounted = true;
+    getDestinationsForSource(formData.source)
+      .then((response) => {
+        if (!isMounted) return;
         const sorted = response.data.sort((a, b) =>
           a.localeCompare(b, undefined, { sensitivity: "base" })
         );
@@ -78,11 +87,15 @@ const BuyTicket = () => {
             ? prev.destination
             : "",
         }));
-      } catch (err) {
+      })
+      .catch((err) => {
+        if (!isMounted) return;
         console.error("Failed to load destinations", err);
-      }
-    }
-  };
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [formData.source]);
 
   const handleSearchBuses = async (e) => {
     e.preventDefault();
@@ -225,7 +238,7 @@ const BuyTicket = () => {
               value={formData.destination}
               onChange={handleInputChange}
               required
-              disabled={!formData.source}
+              disabled={!formData.source || availableDestinations.length === 0}
             >
               <option value="">Select destination</option>
               {availableDestinations.map((stop, idx) => (

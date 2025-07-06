@@ -95,7 +95,7 @@ const ChatWidget = () => {
 
   return (
     <div className="chatbot-fixed-wrapper">
-      <button className="chatbot-toggle" onClick={() => setIsOpen(!isOpen)}>
+      <button className="chatbot-toggle" onClick={() => setIsOpen(!isOpen)} aria-label="Chat">
         <i className="bi bi-chat-dots-fill"></i>
       </button>
 
