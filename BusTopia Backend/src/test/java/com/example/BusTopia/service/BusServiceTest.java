@@ -90,7 +90,7 @@ class BusServiceTest {
             busService.getStartTimeForAStop(bus, "InvalidStop");
         });
     }
-    
+
 
     @Test
     void getAvailableBuses_ShouldExcludeBusesWithInvalidData() {
