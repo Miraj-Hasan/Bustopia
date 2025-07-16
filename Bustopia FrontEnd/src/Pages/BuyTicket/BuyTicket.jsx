@@ -8,9 +8,11 @@ import {
   getDestinationsForSource,
   getSeatLayout,
   getBookedSeats,
+  getReviewsByBusId,
 } from "../../Api/ApiCalls";
 import "./BuyTicket.css";
 import { Navbar } from "../../Components/Navbar/Navbar";
+import { formatDistanceToNow } from "date-fns";
 
 const BuyTicket = () => {
   const { user } = useContext(UserContext);
@@ -20,6 +22,9 @@ const BuyTicket = () => {
     source: "",
     destination: "",
     date: "",
+    category: "",
+    min_budget: 0,
+    max_budget: 2000,
   });
 
   const [buses, setBuses] = useState([]);
@@ -35,6 +40,26 @@ const BuyTicket = () => {
   const [bookedSeats, setBookedSeats] = useState({});
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [seatLoading, setSeatLoading] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [reviewIndex, setReviewIndex] = useState(-1);
+  const [showReviews, setShowReviews] = useState(false);
+
+  const fetchReviews = async (busId) => {
+    try {
+      const response = await getReviewsByBusId(busId);
+      setReviews(response.data || []);
+      
+      if(reviewIndex === busId) {
+        setShowReviews(false);
+        setReviewIndex(-1); 
+      } else {
+        setShowReviews(true);
+        setReviewIndex(busId);
+      }
+    } catch (err) {
+      console.error("Error fetching reviews", err);
+    }
+  };
 
   useEffect(() => {
     const loadStops = async () => {
@@ -263,6 +288,42 @@ const BuyTicket = () => {
             />
           </div>
 
+          <div className="form-group">
+            <label htmlFor="coach_type">From:</label>
+            <select
+              id="coach_type"
+              name="category"
+              value={formData.category}
+              onChange={handleInputChange}
+            >
+              <option value="">Select Coach type</option>
+              <option value="AC">AC</option>
+              <option value="Non-AC">Non-AC</option>
+
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="min_budget">min_budget:</label>
+            <input
+              type="text"
+              placeholder="Minimum Budget"
+              value={formData.min_budget}
+              onChange={(e) => setFormData((prev) => ({ ...prev, min_budget: e.target.value }))}
+            />
+          </div>
+
+
+          <div className="form-group">
+            <label htmlFor="max_budget">From:</label>
+            <input
+              type="text"
+              placeholder="Maximum Budget"
+              value={formData.max_budget}
+              onChange={(e) => setFormData((prev) => ({ ...prev, max_budget: e.target.value }))}
+            />
+          </div>
+
           <button type="submit" className="search-button">
             Search Buses
           </button>
@@ -298,15 +359,82 @@ const BuyTicket = () => {
                       {formatFullDateTime(formData.date, bus.departureTime)}
                     </p>
                     <p>Price: {bus.price} ৳</p>
-                    <button
-                      onClick={() => handleSelectSeats(bus)}
-                      className="book-button"
-                      disabled={seatLoading}
-                    >
-                      {seatLoading && selectedBus?.busId === bus.busId
-                        ? "Loading..."
-                        : "Select Seats"}
-                    </button>
+                    <div>
+                      <button
+                        onClick={() => handleSelectSeats(bus)}
+                        className="book-button"
+                        disabled={seatLoading}
+                      >
+                        {seatLoading && selectedBus?.busId === bus.busId
+                          ? "Loading..."
+                          : "Select Seats"}
+                      </button>
+
+                      <button
+                        className="book-button"
+                        onClick={() => fetchReviews(bus.busId)}
+                      >
+                        Reviews
+                      </button>
+                    </div>
+
+                    {showReviews && reviewIndex === bus.busId ? (reviews.length > 0 ? (
+                      reviews.map((review, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: "15px",
+                            marginBottom: "15px",
+                            backgroundColor: "#ffffff",
+                            padding: "15px",
+                            borderRadius: "10px",
+                            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                          }}
+                        >
+                          <img
+                            src={review.userPhoto || "https://via.placeholder.com/50"}
+                            alt="User"
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              borderRadius: "50%",
+                              objectFit: "cover",
+                            }}
+                          />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <span style={{ fontWeight: "bold", color: "#333" }}>{review.userName}</span>
+                              <span style={{ fontSize: "0.9rem", color: "#777" }}>
+                                {formatDistanceToNow(new Date(review.reviewTime), { addSuffix: true })}
+                              </span>
+                            </div>
+
+                            <div style={{ color: "#ffc107", margin: "5px 0" }}>
+                              {"★".repeat(review.stars)}{"☆".repeat(5 - review.stars)}
+                            </div>
+
+                            <p style={{ margin: "0", color: "#444" }}>{review.message}</p>
+
+                            {review.images?.length > 0 && (
+                              <div style={{ marginTop: "10px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                                {review.images.map((img, i) => (
+                                  <img key={i} src={img} alt="Review" style={{
+                                    width: "100px",
+                                    height: "100px",
+                                    objectFit: "cover",
+                                    borderRadius: "8px"
+                                  }} />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p style={{ marginTop: "10px" }}>No reviews found.</p>
+                    )) : <></>}
                   </li>
                 ))}
             </ul>
@@ -324,11 +452,9 @@ const BuyTicket = () => {
                     {row.map((seatLabel, colIndex) => (
                       <div
                         key={`${rowIndex}-${colIndex}`}
-                        className={`seat ${
-                          seatLabel === "" ? "empty" : "available"
-                        } ${bookedSeats[seatLabel] ? "booked" : ""} ${
-                          selectedSeats.includes(seatLabel) ? "selected" : ""
-                        }`}
+                        className={`seat ${seatLabel === "" ? "empty" : "available"
+                          } ${bookedSeats[seatLabel] ? "booked" : ""} ${selectedSeats.includes(seatLabel) ? "selected" : ""
+                          }`}
                         onClick={() =>
                           seatLabel !== "" && handleSeatClick(seatLabel)
                         }

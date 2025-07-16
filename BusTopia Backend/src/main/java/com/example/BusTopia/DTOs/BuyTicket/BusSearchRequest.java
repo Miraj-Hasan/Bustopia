@@ -10,5 +10,8 @@ public class BusSearchRequest {
     private String source;
     private String destination;
     private LocalDate date;
+    private String category;
+    private int min_budget;
+    private int max_budget;
 }
 

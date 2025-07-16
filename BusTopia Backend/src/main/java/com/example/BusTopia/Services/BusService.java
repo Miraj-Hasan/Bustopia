@@ -70,7 +70,7 @@ public class BusService {
         return baseStartTime.plus(totalDuration);
     }
 
-    public List<Bus> getAvailableBuses(String source, String destination, LocalDate date) {
+    public List<Bus> getAvailableBuses(String source, String destination, LocalDate date, String category, int min_budget, int max_budget) {
         // Get routes containing both source and destination
         List<Route> routes = routeService.getRoutesContainingSourceAndDestination(source, destination);
 

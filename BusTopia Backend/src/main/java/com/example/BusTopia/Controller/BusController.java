@@ -24,13 +24,17 @@ public class BusController {
 
     @PostMapping("/available")
     public ResponseEntity<List<BusSearchResponse>> getAvailableBuses(@RequestBody BusSearchRequest request) {
-        List<Bus> buses = busService.getAvailableBuses(request.getSource(), request.getDestination(), request.getDate());
+        List<Bus> buses = busService.getAvailableBuses(request.getSource(), request.getDestination(), request.getDate(),
+                request.getCategory(), request.getMin_budget(), request.getMax_budget());
+
 
         List<BusSearchResponse> responses = buses.stream().map(bus -> {
             LocalTime startTime = busService.getStartTimeForAStop(bus, request.getSource());
+
             int price = priceMappingRepository
                     .getPrice(request.getSource(), request.getDestination(), bus.getCategory())
                     .orElse(0);
+
 
             int availableSeats = seatAvailabilityRepository
                     .findByBusAndJourneyDate(bus, request.getDate())
@@ -51,6 +55,12 @@ public class BusController {
             );
         }).toList();
 
-        return ResponseEntity.ok(responses);
+        List<BusSearchResponse> finalResponses = responses.stream().filter(bus -> {
+            boolean priceOkay = bus.getPrice() >= request.getMin_budget() && bus.getPrice() <= request.getMax_budget();
+            boolean catOkay = request.getCategory().equals("") || bus.getCategory().equalsIgnoreCase(request.getCategory());
+            return priceOkay && catOkay;
+        }).toList();
+
+        return ResponseEntity.ok(finalResponses);
     }
 }
