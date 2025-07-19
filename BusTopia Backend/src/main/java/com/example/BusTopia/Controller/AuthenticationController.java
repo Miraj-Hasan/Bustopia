@@ -145,34 +145,6 @@ public class AuthenticationController {
         }
     }
 
-//    @GetMapping("/verify-registration")
-//    public ResponseEntity<?> verify(@RequestParam String code, @RequestParam String email) {
-//        try {
-//            CachedRegistration cached = tempRegistrationService.getRegistration(code);
-//            if (cached == null || !cached.getRegisterRequest().getEmail().equalsIgnoreCase(email)) {
-//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or expired link.");
-//            }
-//
-//            MultipartFile imageFile = null;
-//            byte[] imageBytes = cached.getImageBytes();
-//            if (imageBytes != null && imageBytes.length > 0) {
-//                // Replace MockMultipartFile with our new implementation
-//                imageFile = new ByteArrayMultipartFile(
-//                        imageBytes,
-//                        "file",
-//                        "user-image.jpg",
-//                        "image/jpeg"
-//                );
-//            }
-//
-//            userService.register(cached.getRegisterRequest(), imageFile);
-//            tempRegistrationService.delete(code);
-//            return ResponseEntity.ok("Registration successful!");
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Verification failed: " + e.getMessage());
-//        }
-//    }
-
 
     @GetMapping("/verify-registration")
     public ResponseEntity<?> verify(@RequestParam String code, @RequestParam String email) {

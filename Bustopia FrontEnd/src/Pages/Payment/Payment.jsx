@@ -1,11 +1,15 @@
-import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useContext } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./Payment.css";
+import { initiatePayment } from "../../Api/ApiCalls";
+import { UserContext } from "../../Context/UserContext";
 
 const Payment = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const ticket = location.state?.ticket;
+  const { user } = useContext(UserContext);
+
+  const booking = location.state?.booking;
 
   const formatDateTime = (date, time) => {
     if (!date || !time) return "N/A";
@@ -19,12 +23,35 @@ const Payment = () => {
     return `${formattedDate}, ${hour}:${minuteStr} ${ampm}`;
   };
 
-  if (!ticket) {
+  const handlePayment = async () => {
+    const tranId = "TXN_" + Date.now(); // Unique transaction ID
+
+    try {
+      const response = await initiatePayment({
+        amount: booking.price,
+        tranId: tranId,
+        customerName: user.username,
+        customerEmail: user.email,
+        customerPhone: user.phone,
+        bookingData: booking,
+      });
+
+      if (response?.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        alert("Failed to initiate payment.");
+      }
+    } catch (err) {
+      alert("Payment initiation failed.");
+    }
+  };
+
+  if (!booking) {
     return (
       <div className="payment-container">
         <div className="payment-card">
-          <h2>No Ticket Found</h2>
-          <p>Please select a ticket to proceed with payment.</p>
+          <h2>No Booking Found</h2>
+          <p>Please select a booking to proceed with payment.</p>
           <button className="back-button" onClick={() => navigate("/")}>
             Back to Home
           </button>
@@ -33,51 +60,36 @@ const Payment = () => {
     );
   }
 
-  const handlePayment = () => {
-    alert("Payment successful! Your ticket is confirmed.");
-    navigate("/"); // Redirect to homepage or a success page
-  };
-
   return (
     <div className="payment-container">
       <div className="payment-card">
         <h2>Complete Your Payment</h2>
         <div className="ticket-info">
           <div className="ticket-info-item">
-            <span className="label">Ticket Code:</span>
-            <span className="value">{ticket.ticketCode}</span>
-          </div>
-          <div className="ticket-info-item">
-            <span className="label">Bus:</span>
-            <span className="value">
-              {ticket.bus?.companyName || "N/A"} ({ticket.bus?.category || "N/A"})
-            </span>
+            <span className="label">Bus ID:</span>
+            <span className="value">{booking.busId}</span>
           </div>
           <div className="ticket-info-item">
             <span className="label">Route:</span>
             <span className="value">
-              {ticket.source} → {ticket.destination}
+              {booking.source} → {booking.destination}
             </span>
           </div>
           <div className="ticket-info-item">
             <span className="label">Seats:</span>
             <span className="value">
-              {ticket.seats?.length > 0 ? ticket.seats.join(", ") : "N/A"}
+              {booking.seats?.length > 0 ? booking.seats.join(", ") : "N/A"}
             </span>
           </div>
           <div className="ticket-info-item">
             <span className="label">Date & Time:</span>
             <span className="value">
-              {formatDateTime(ticket.date, ticket.scheduledTime)}
+              {formatDateTime(booking.date, booking.time)}
             </span>
           </div>
           <div className="ticket-info-item">
-            <span className="label">Price:</span>
-            <span className="value">{ticket.price} BDT</span>
-          </div>
-          <div className="ticket-info-item">
-            <span className="label">Status:</span>
-            <span className="value">{ticket.status}</span>
+            <span className="label">Total Price:</span>
+            <span className="value">{booking.price} BDT</span>
           </div>
         </div>
         <div className="payment-actions">

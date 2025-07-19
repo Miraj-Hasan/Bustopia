@@ -15,6 +15,7 @@ import TicketVerification from './Pages/TicketVerification/TicketVerification';
 import ChatWidget from './Components/ChatWidget/ChatWidget';
 import BuyTicket from './Pages/BuyTicket/BuyTicket';
 import Payment from './Pages/Payment/Payment';
+import PaymentResult from './Pages/Payment/PaymentResult';
 
 function App() {
 
@@ -57,8 +58,15 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/payment" element={<Payment />} />
+        <Route
+          path="/payment" element={
+            <ProtectedRoute>
+              <Payment />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/ticket-verification" element={<TicketVerification />} />
+        <Route path="/payment-result" element={<PaymentResult />} />
 
         <Route path="*" element={<h1>Balchal dio na guru</h1>} />
       </Routes>
@@ -73,7 +81,7 @@ function App() {
         pauseOnHover
         theme="colored"
       />
-      
+
 
     </>
   );

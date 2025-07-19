@@ -252,3 +252,13 @@ export const getBookedSeats = async (busId, date) => {
     throw error;
   }
 };
+
+
+export const initiatePayment = async (paymentData) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/api/payment/initiate`, paymentData);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};

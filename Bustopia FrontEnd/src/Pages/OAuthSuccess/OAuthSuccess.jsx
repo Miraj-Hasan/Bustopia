@@ -6,51 +6,53 @@ import assets from "../../assets/assets";
 import { UserContext } from "../../Context/UserContext";
 
 export default function OAuthSuccess() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const backendURL = import.meta.env.VITE_API_BASE_URL;
+  const backendURL = import.meta.env.VITE_API_BASE_URL;
 
-    const {setUser} = useContext(UserContext);
+  const { setUser } = useContext(UserContext);
 
-    async function getUser() {
-      try {
-        const res = await axios.get(`${backendURL}/api/me`, {
-          withCredentials: true, 
-        });
-        setUser(res.data);
-        //console.log(res.data);
-        sessionStorage.setItem("user", JSON.stringify(res.data));
-        navigate("/");
-      } catch (err) {
-        navigate("/login");
-        console.log(err);
-      }
+  async function getUser() {
+    try {
+      const res = await axios.get(`${backendURL}/api/me`, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      setUser(res.data);
+      sessionStorage.setItem("user", JSON.stringify(res.data));
+      navigate("/");
+    } catch (err) {
+      navigate("/login");
+      console.log("Error fetching user data: ", err);
     }
+  }
 
-    useEffect(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
-            getUser();
-        }, 300); 
-        return () => clearTimeout(timer);
-    }, []);
+      getUser();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
 
-    return (
-      <div className="vh-100 d-flex flex-column justify-content-center align-items-center bg-light">
-        <div className="text-center">
-          <img
-            src={assets.logo} // optional logo
-            alt="EchoRoom Logo"
-            style={{ width: "100px", marginBottom: "20px" }}
-          />
+  return (
+    <div className="vh-100 d-flex flex-column justify-content-center align-items-center bg-light">
+      <div className="text-center">
+        <img
+          src={assets.logo} // optional logo
+          alt="EchoRoom Logo"
+          style={{ width: "100px", marginBottom: "20px" }}
+        />
 
-          <h2 className="fw-bold mb-3 text-primary">Logging you in...</h2>
+        <h2 className="fw-bold mb-3 text-primary">Logging you in...</h2>
 
-          <Spinner animation="border" variant="primary" role="status" />
+        <Spinner animation="border" variant="primary" role="status" />
 
-          <p className="text-muted mt-3">
-            Please wait while we set up your profile.
-          </p>
-        </div>
+        <p className="text-muted mt-3">
+          Please wait while we set up your profile.
+        </p>
       </div>
-    );
+    </div>
+  );
 }

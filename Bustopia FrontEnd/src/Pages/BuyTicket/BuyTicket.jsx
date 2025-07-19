@@ -48,10 +48,10 @@ const BuyTicket = () => {
     try {
       const response = await getReviewsByBusId(busId);
       setReviews(response.data || []);
-      
-      if(reviewIndex === busId) {
+
+      if (reviewIndex === busId) {
         setShowReviews(false);
-        setReviewIndex(-1); 
+        setReviewIndex(-1);
       } else {
         setShowReviews(true);
         setReviewIndex(busId);
@@ -192,25 +192,21 @@ const BuyTicket = () => {
       return;
     }
 
-    try {
-      const bookingData = {
-        userId: user.id,
-        busId: selectedBus.busId,
-        source: formData.source,
-        destination: formData.destination,
-        date: formData.date,
-        time: selectedBus.departureTime,
-        seats: selectedSeats,
-      };
-      const response = await bookTicket(bookingData);
-      setError("");
-      setShowSeatModal(false);
-      setSelectedSeats([]);
-      navigate("/payment", { state: { ticket: response.data } });
-    } catch (err) {
-      setError("Failed to book ticket. Please try again.");
-      console.error(err);
-    }
+    // Send only booking details to /payment page, not create ticket yet
+    const bookingData = {
+      userId: user.id,
+      busId: selectedBus.busId,
+      source: formData.source,
+      destination: formData.destination,
+      date: formData.date,
+      time: selectedBus.departureTime,
+      seats: selectedSeats,
+      price: selectedBus.price * selectedSeats.length,
+    };
+
+    setShowSeatModal(false);
+    setSelectedSeats([]);
+    navigate("/payment", { state: { booking: bookingData } });
   };
 
   const formatFullDateTime = (dateStr, timeStr) => {
