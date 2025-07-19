@@ -39,11 +39,10 @@ class BusControllerTest {
     private BusController busController;
 
     @Test
-    void getAvailableBuses_ShouldReturnListOfBuses() {
+    void getAvailableBuses_ShouldReturnOneACBusWithinBudget() {
         // Arrange
         BusSearchRequest request = new BusSearchRequest(
-                "Dhaka", "Chittagong", LocalDate.now().plusDays(1)
-        );
+                "Dhaka", "Chittagong", LocalDate.now(), "AC", 1000, 1300); // budget allows 1200
 
         Route route = new Route();
         route.setStops(List.of("Dhaka", "Comilla", "Chittagong"));
@@ -56,26 +55,19 @@ class BusControllerTest {
         bus1.setRoute(route);
         bus1.setStartTime(LocalTime.of(8, 0));
 
-        Bus bus2 = new Bus();
-        bus2.setBusId(2);
-        bus2.setCompanyName("Shohagh");
-        bus2.setLicenseNo("SH-5678");
-        bus2.setCategory("Non-AC");
-        bus2.setRoute(route);
-        bus2.setStartTime(LocalTime.of(10, 30));
-
-        when(busService.getAvailableBuses("Dhaka", "Chittagong", request.getDate()))
-                .thenReturn(List.of(bus1, bus2));
+        // Only bus1 is returned as it's AC and within budget
+        when(busService.getAvailableBuses(
+                "Dhaka", "Chittagong", request.getDate(), "AC", 1000, 1300))
+                .thenReturn(List.of(bus1));
 
         when(priceMappingRepository.getPrice("Dhaka", "Chittagong", "AC"))
                 .thenReturn(Optional.of(1200));
-        when(priceMappingRepository.getPrice("Dhaka", "Chittagong", "Non-AC"))
-                .thenReturn(Optional.of(800));
 
         when(seatAvailabilityRepository.findByBusAndJourneyDate(bus1, request.getDate()))
                 .thenReturn(Optional.empty());
-        when(seatAvailabilityRepository.findByBusAndJourneyDate(bus2, request.getDate()))
-                .thenReturn(Optional.empty());
+
+        when(busService.getStartTimeForAStop(bus1, "Dhaka"))
+                .thenReturn(LocalTime.of(8, 0));
 
         // Act
         ResponseEntity<List<BusSearchResponse>> response = busController.getAvailableBuses(request);
@@ -83,47 +75,41 @@ class BusControllerTest {
         // Assert
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
+
         List<BusSearchResponse> buses = response.getBody();
         assertNotNull(buses);
-        assertEquals(2, buses.size());
+        assertEquals(1, buses.size());
 
-        BusSearchResponse response1 = buses.get(0);
-        assertEquals(1, response1.getBusId());
-        assertEquals("Green Line", response1.getCompanyName());
-        assertEquals("GL-1234", response1.getLicenseNo());
-        assertEquals("AC", response1.getCategory());
-        assertEquals("Dhaka", response1.getSource());
-        assertEquals("Chittagong", response1.getDestination());
-        assertEquals(1200, response1.getPrice());
-        assertEquals(0, response1.getAvailableSeats());
+        BusSearchResponse busResponse = buses.get(0);
+        assertEquals(1, busResponse.getBusId());
+        assertEquals("Green Line", busResponse.getCompanyName());
+        assertEquals("GL-1234", busResponse.getLicenseNo());
+        assertEquals("AC", busResponse.getCategory());
+        assertEquals("Dhaka", busResponse.getSource());
+        assertEquals("Chittagong", busResponse.getDestination());
+        assertEquals(1200, busResponse.getPrice());
+        assertEquals(0, busResponse.getAvailableSeats()); // no existing seat availability
 
-        BusSearchResponse response2 = buses.get(1);
-        assertEquals(2, response2.getBusId());
-        assertEquals("Shohagh", response2.getCompanyName());
-        assertEquals("SH-5678", response2.getLicenseNo());
-        assertEquals("Non-AC", response2.getCategory());
-        assertEquals("Dhaka", response2.getSource());
-        assertEquals("Chittagong", response2.getDestination());
-        assertEquals(800, response2.getPrice());
-        assertEquals(0, response2.getAvailableSeats());
-
-        verify(busService, times(1)).getAvailableBuses("Dhaka", "Chittagong", request.getDate());
-        verify(busService, times(1)).getStartTimeForAStop(bus1, "Dhaka");
-        verify(busService, times(1)).getStartTimeForAStop(bus2, "Dhaka");
-        verify(priceMappingRepository, times(1)).getPrice("Dhaka", "Chittagong", "AC");
-        verify(priceMappingRepository, times(1)).getPrice("Dhaka", "Chittagong", "Non-AC");
-        verify(seatAvailabilityRepository, times(1)).findByBusAndJourneyDate(bus1, request.getDate());
-        verify(seatAvailabilityRepository, times(1)).findByBusAndJourneyDate(bus2, request.getDate());
+        // Verifications
+        verify(busService, times(1))
+                .getAvailableBuses("Dhaka", "Chittagong", request.getDate(), "AC", 1000, 1300);
+        verify(priceMappingRepository, times(1))
+                .getPrice("Dhaka", "Chittagong", "AC");
+        verify(seatAvailabilityRepository, times(1))
+                .findByBusAndJourneyDate(bus1, request.getDate());
+        verify(busService, times(1))
+                .getStartTimeForAStop(bus1, "Dhaka");
     }
+
 
     @Test
     void getAvailableBuses_ShouldHandleNoAvailableBuses() {
         // Arrange
         BusSearchRequest request = new BusSearchRequest(
-                "Dhaka", "Chittagong", LocalDate.now().plusDays(1)
+                "Dhaka", "Chittagong", LocalDate.now().plusDays(1), "AC", 0, 10
         );
 
-        when(busService.getAvailableBuses("Dhaka", "Chittagong", request.getDate()))
+        when(busService.getAvailableBuses("Dhaka", "Chittagong", request.getDate(), "AC", 0, 10))
                 .thenReturn(List.of());
 
         // Act
@@ -136,7 +122,7 @@ class BusControllerTest {
         assertNotNull(buses);
         assertTrue(buses.isEmpty());
 
-        verify(busService, times(1)).getAvailableBuses("Dhaka", "Chittagong", request.getDate());
+        verify(busService, times(1)).getAvailableBuses("Dhaka", "Chittagong", request.getDate(), "AC", 0, 10);
         verifyNoMoreInteractions(busService, priceMappingRepository, seatAvailabilityRepository);
     }
 }

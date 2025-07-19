@@ -123,7 +123,7 @@ class BusServiceTest {
         busService.setClock(fixedClock);
 
         // Act
-        List<Bus> result = busService.getAvailableBuses(source, destination, date);
+        List<Bus> result = busService.getAvailableBuses(source, destination, date, "AC", 0, 10);
 
         // Assert
         assertEquals(1, result.size());
