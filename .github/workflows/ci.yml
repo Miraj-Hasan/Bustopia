@@ -62,6 +62,8 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GROK_KEY: ${{ secrets.GROK_KEY }}
       GROK_URL: ${{ secrets.GROK_URL }}
+      SSLCOMMERZ_ID: ${{ secrets.SSLCOMMERZ_ID }}
+      SSLCOMMERZ_PASSWORD: ${{ secrets.SSLCOMMERZ_PASSWORD }}
 
     steps:
       - name: Check out code
@@ -165,6 +167,8 @@ jobs:
             -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
             -e GROK_KEY="${{ secrets.GROK_KEY }}" \
             -e GROK_URL="${{ secrets.GROK_URL }}" \
+            -e SSLCOMMERZ_ID="${{ secrets.SSLCOMMERZ_ID }}" \
+            -e SSLCOMMERZ_PASSWORD="${{ secrets.SSLCOMMERZ_PASSWORD }}" \
             fiihad/bustopia-backend:latest
 
       - name: Start frontend container
