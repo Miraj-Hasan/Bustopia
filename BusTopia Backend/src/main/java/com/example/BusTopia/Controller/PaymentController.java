@@ -62,9 +62,13 @@ public class PaymentController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
+        System.out.println("request headers: " + headers);
+
         try {
             ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, new HttpEntity<>(payload, headers), Map.class);
             Map body = response.getBody();
+
+            System.out.println("response body: " + body);
 
             if ("SUCCESS".equalsIgnoreCase((String) body.get("status"))) {
                 return ResponseEntity.ok(Map.of("url", body.get("GatewayPageURL")));
