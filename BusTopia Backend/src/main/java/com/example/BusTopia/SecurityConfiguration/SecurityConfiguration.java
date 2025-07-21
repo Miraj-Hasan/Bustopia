@@ -48,7 +48,7 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("https://172.167.170.46:3000",
-                "https://app.172.167.170.46.nip.io:3000",
+                "https://app.172.167.170.46.nip.io:8443",
                 FRONTEND_ORIGIN));
 //        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
