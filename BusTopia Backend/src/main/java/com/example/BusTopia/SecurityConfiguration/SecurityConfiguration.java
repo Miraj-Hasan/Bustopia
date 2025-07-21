@@ -47,10 +47,10 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("https://172.167.170.46:3000",
-                "https://app.172.167.170.46.nip.io:3000",
-                FRONTEND_ORIGIN));
-//        config.setAllowedOriginPatterns(List.of("*"));
+//        config.setAllowedOrigins(List.of("https://172.167.170.46:3000",
+//                "https://app.172.167.170.46.nip.io:3000",
+//                FRONTEND_ORIGIN));
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -102,7 +102,8 @@ public class SecurityConfiguration {
                                         "/api/payment/initiate",
                                         "/api/payment/success",
                                         "/api/payment/fail",
-                                        "/api/payment/cancel").permitAll()
+                                        "/api/payment/cancel","/login/oauth2/**",
+                                        "/oauth2/**").permitAll()
                                 .anyRequest().authenticated()
                         )
                 .oauth2Login(oauth2->oauth2.successHandler(googleOAuth2SuccessHandler))
