@@ -238,6 +238,7 @@ export const getSeatLayout = async (busId) => {
   }
 };
 
+
 // Get booked seats for a specific bus and date
 export const getBookedSeats = async (busId, date) => {
   try {
