@@ -32,6 +32,8 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - GROK_KEY=${GROK_KEY}
       - GROK_URL=${GROK_URL}
+      - SSLCOMMERZ_ID=${SSLCOMMERZ_ID}
+      - SSLCOMMERZ_PASSWORD=${SSLCOMMERZ_PASSWORD}
     restart: unless-stopped
 
   frontend:
