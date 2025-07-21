@@ -36,6 +36,8 @@ const Payment = () => {
         bookingData: booking,
       });
 
+      console.log("payment initiate response", response);
+
       if (response?.data?.url) {
         window.location.href = response.data.url;
       } else {

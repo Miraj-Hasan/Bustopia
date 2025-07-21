@@ -99,10 +99,9 @@ public class SecurityConfiguration {
                                         "/actuator/health",
                                         "/actuator/**",
                                         "/api/logout",
-                                        "/api/payment/initiate",
-                                        "/api/payment/success",
-                                        "/api/payment/fail",
-                                        "/api/payment/cancel","/login/oauth2/**",
+                                        "/api/payment/**",
+                                        "/api/me",
+                                        "/login/oauth2/**",
                                         "/oauth2/**").permitAll()
                                 .anyRequest().authenticated()
                         )
