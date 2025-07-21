@@ -60,9 +60,9 @@ function App() {
         />
         <Route
           path="/payment" element={
-            <ProtectedRoute>
+            
               <Payment />
-            </ProtectedRoute>
+            
           }
         />
         <Route path="/ticket-verification" element={<TicketVerification />} />
