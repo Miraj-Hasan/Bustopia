@@ -34,6 +34,13 @@ export default defineConfig({
           return null;
         }
       });
+      // Add Chrome flag to ignore certificate errors
+      on('before:browser:launch', (browser = {}, launchOptions) => {
+        if (browser.family === 'chromium' && browser.name !== 'electron') {
+          launchOptions.args.push('--ignore-certificate-errors');
+        }
+        return launchOptions;
+      });
     },
   },
 });
