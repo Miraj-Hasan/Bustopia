@@ -14,7 +14,7 @@
     "cypress:run:headless": "cypress run --headless",
     "test:e2e": "cypress run --headless",
     "test:e2e:dev": "cypress open",
-    "test:ci": "cypress run --browser chrome --headless --reporter spec",
+    "test:ci": "cypress run --browser chrome --headless --reporter spec --ignore-certificate-errors",
     "test:staging": "CYPRESS_BASE_URL=https://your-staging-frontend.com CYPRESS_API_BASE_URL=https://your-staging-backend.com cypress run --headless",
     "test:production": "CYPRESS_BASE_URL=https://your-production-frontend.com CYPRESS_API_BASE_URL=https://your-production-backend.com cypress run --headless",
     "test:staging:open": "CYPRESS_BASE_URL=https://your-staging-frontend.com CYPRESS_API_BASE_URL=https://your-production-backend.com cypress open",
