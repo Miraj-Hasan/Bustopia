@@ -16,6 +16,7 @@ import ChatWidget from './Components/ChatWidget/ChatWidget';
 import BuyTicket from './Pages/BuyTicket/BuyTicket';
 import Payment from './Pages/Payment/Payment';
 import PaymentResult from './Pages/Payment/PaymentResult';
+import CancelTicket from './Pages/CancelTicket/CancelTicket';
 
 function App() {
 
@@ -67,6 +68,7 @@ function App() {
         />
         <Route path="/ticket-verification" element={<TicketVerification />} />
         <Route path="/payment-result" element={<PaymentResult />} />
+        <Route path="/cancel-ticket" element={<CancelTicket />} />
 
         <Route path="*" element={<h1>Balchal dio na guru</h1>} />
       </Routes>

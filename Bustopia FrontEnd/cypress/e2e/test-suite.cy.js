@@ -646,7 +646,7 @@ describe('Bustopia Frontend E2E Test Suite', () => {
       }
       
       // Update username
-      cy.get('input[name="username"]').should('have.value', 'Miraj Hasan')
+      cy.get('input[name="username"]').should('have.value', 'Fihad Ar-Rahman')
       cy.get('input[name="username"]').clear().wait(100).type(updatedData.username)
       cy.get('input[name="username"]').should('have.value', updatedData.username)
       
@@ -714,7 +714,7 @@ describe('Bustopia Frontend E2E Test Suite', () => {
       }
       
       // Update form fields
-      cy.get('input[name="username"]').should('have.value', 'Miraj Hasan')
+      cy.get('input[name="username"]').should('have.value', 'Fihad Ar-Rahman')
       cy.get('input[name="username"]').clear().wait(100).type(updatedData.username)
       cy.get('input[name="username"]').should('have.value', updatedData.username)
       cy.get('input[name="phone"]').clear().type(updatedData.phone)
@@ -760,7 +760,7 @@ describe('Bustopia Frontend E2E Test Suite', () => {
       }
       
       // Fill form
-      cy.get('input[name="username"]').should('have.value', 'Miraj Hasan')
+      cy.get('input[name="username"]').should('have.value', 'Fihad Ar-Rahman')
       cy.get('input[name="username"]').clear().wait(100).type(testData.username)
       cy.get('input[name="username"]').should('have.value', testData.username)
       cy.get('input[name="phone"]').clear().type(testData.phone)
@@ -788,7 +788,7 @@ describe('Bustopia Frontend E2E Test Suite', () => {
         phone: '+8801999888777'
       }
       
-      cy.get('input[name="username"]').should('have.value', 'Miraj Hasan')
+      cy.get('input[name="username"]').should('have.value', 'Fihad Ar-Rahman')
       cy.get('input[name="username"]').clear().wait(100).type(completeUpdate.username)
       cy.get('input[name="username"]').should('have.value', completeUpdate.username)
       cy.get('input[name="phone"]').clear().type(completeUpdate.phone)
