@@ -2,6 +2,17 @@ import React, { useEffect, useState, useContext } from 'react';
 import { getUserTickets } from '../../Api/ApiCalls';
 import { UserContext } from '../../Context/UserContext';
 
+function isCancellable(ticketDate) {
+  // ticketDate is expected in YYYY-MM-DD format
+  const now = new Date();
+  const ticketDateObj = new Date(ticketDate);
+  // Set ticketDateObj to end of the day for more user-friendly cancellation
+  ticketDateObj.setHours(23, 59, 59, 999);
+  const diffMs = ticketDateObj - now;
+  const diffHours = diffMs / (1000 * 60 * 60);
+  return diffHours >= 24;
+}
+
 export default function CancelTicket() {
   const { user } = useContext(UserContext);
   const [tickets, setTickets] = useState([]);
@@ -31,18 +42,56 @@ export default function CancelTicket() {
   if (error) return <div>{error}</div>;
 
   return (
-    <div>
-      <h2>Your Tickets</h2>
+    <div style={{ maxWidth: 800, margin: '40px auto', padding: 24 }}>
+      <h2 style={{ textAlign: 'center', marginBottom: 32 }}>Your Tickets</h2>
       {tickets.length === 0 ? (
-        <p>No tickets found.</p>
+        <p style={{ textAlign: 'center' }}>No tickets found.</p>
       ) : (
-        <ul>
-          {tickets.map((ticket) => (
-            <li key={ticket.ticketId}>
-              Ticket #{ticket.ticketId} - {ticket.source} to {ticket.destination} on {ticket.date}
-            </li>
-          ))}
-        </ul>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+            <thead style={{ background: '#007bff', color: '#fff' }}>
+              <tr>
+                <th style={{ padding: '12px 16px', fontWeight: 600 }}>Ticket ID</th>
+                <th style={{ padding: '12px 16px', fontWeight: 600 }}>Source</th>
+                <th style={{ padding: '12px 16px', fontWeight: 600 }}>Destination</th>
+                <th style={{ padding: '12px 16px', fontWeight: 600 }}>Date</th>
+                <th style={{ padding: '12px 16px', fontWeight: 600 }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tickets.map((ticket) => (
+                <tr key={ticket.ticketId} style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '10px 16px', textAlign: 'center' }}>{ticket.ticketId}</td>
+                  <td style={{ padding: '10px 16px', textAlign: 'center' }}>{ticket.source}</td>
+                  <td style={{ padding: '10px 16px', textAlign: 'center' }}>{ticket.destination}</td>
+                  <td style={{ padding: '10px 16px', textAlign: 'center' }}>{ticket.date}</td>
+                  <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                    {isCancellable(ticket.date) ? (
+                      <button
+                        style={{
+                          background: 'linear-gradient(90deg, #ff416c, #ff4b2b)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '8px 18px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(255,65,108,0.12)',
+                          transition: 'background 0.2s',
+                        }}
+                        onClick={() => alert('Cancel logic coming soon!')}
+                      >
+                        Cancel Now
+                      </button>
+                    ) : (
+                      <span style={{ color: '#aaa', fontStyle: 'italic' }}>Not cancellable</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
