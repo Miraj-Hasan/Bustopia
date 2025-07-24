@@ -27,7 +27,7 @@
 // Custom commands for CI/CD reliability
 
 // Login command that can be reused across tests
-Cypress.Commands.add('login', (email = 'hellofihad@gmail.com', password = '123') => {
+Cypress.Commands.add('login', (email = 'mirajhasan1692001@gmail.com', password = '123') => {
   cy.session([email, password], () => {
     cy.visit('/login')
     cy.get('#email').type(email)
