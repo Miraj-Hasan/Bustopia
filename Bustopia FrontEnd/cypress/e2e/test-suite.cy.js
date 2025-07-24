@@ -3,21 +3,7 @@ describe('Bustopia Frontend E2E Test Suite', () => {
   
   // Test 1: Login Flow (must run first)
   describe('1. Authentication Tests', () => {
-    before(() => {
-      // Seed the login user before all tests in this block
-      cy.request({
-        method: 'POST',
-        url: 'https://localhost:8443/api/register',
-        body: {
-          email: 'mirajhasan1692001@gmail.com',
-          password: '123',
-          name: 'Test User',
-          phone: '+8801234567890',
-          gender: 'MALE'
-        },
-        failOnStatusCode: false // Ignore if user already exists
-      });
-    });
+    
     beforeEach(() => {
       // Clear all storage before each test (more reliable)
       cy.clearAllStorage()
@@ -35,49 +21,49 @@ describe('Bustopia Frontend E2E Test Suite', () => {
       cy.get('form').should('be.visible')
     })
 
-    // it('should show validation for empty fields', () => {
-    //   // Try to submit without filling fields
-    //   cy.get('button[type="submit"]').click()
+    it('should show validation for empty fields', () => {
+      // Try to submit without filling fields
+      cy.get('button[type="submit"]').click()
       
-    //   // Check HTML5 validation (email field should be focused)
-    //   cy.get('#email:invalid').should('exist')
-    // })
+      // Check HTML5 validation (email field should be focused)
+      cy.get('#email:invalid').should('exist')
+    })
 
-    // it('should show validation for invalid email format', () => {
-    //   // Enter invalid email
-    //   cy.get('#email').type('invalid-email')
-    //   cy.get('#password').type('123')
-    //   cy.get('button[type="submit"]').click()
+    it('should show validation for invalid email format', () => {
+      // Enter invalid email
+      cy.get('#email').type('invalid-email')
+      cy.get('#password').type('123')
+      cy.get('button[type="submit"]').click()
       
-    //   // Check HTML5 validation for email
-    //   cy.get('#email:invalid').should('exist')
-    // })
+      // Check HTML5 validation for email
+      cy.get('#email:invalid').should('exist')
+    })
 
-    // it('should successfully login with valid credentials', () => {
-    //   // Use custom login command (more reliable)
-    //   cy.get('#email').type('mirajhasan1692001@gmail.com')
-    //   cy.get('#password').type('123')
-    //   cy.get('button[type="submit"]').click()
+    it('should successfully login with valid credentials', () => {
+      // Use custom login command (more reliable)
+      cy.get('#email').type('mirajhasan1692001@gmail.com')
+      cy.get('#password').type('123')
+      cy.get('button[type="submit"]').click()
       
-    //   // Check loading state
-    //   //cy.get('button[type="submit"]').should('contain', 'Logging in...')
-    //   //cy.get('.spinner-border').should('be.visible')
+      //Check loading state
+      cy.get('button[type="submit"]').should('contain', 'Logging in...')
+      cy.get('.spinner-border').should('be.visible')
       
-    //   // Wait for OAuth flow with extended timeout
-    //   // cy.url().should('include', '/oauth-success')
-    //   // cy.url().should('eq', 'https://localhost:3000/', { timeout: 15000 })
+      // Wait for OAuth flow with extended timeout
+      // cy.url().should('include', '/oauth-success')
+      // cy.url().should('eq', 'https://localhost:3000/', { timeout: 15000 })
       
-    //   // // Verify session storage
-    //   // cy.window().then((win) => {
-    //   //   const user = win.sessionStorage.getItem('user')
-    //   //   expect(user).to.not.be.null
-    //   //   expect(user).to.not.equal('null')
-    //   //   const userData = JSON.parse(user)
-    //   //   expect(userData).to.have.property('username')
-    //   // })
-    //   // Check for success toast
-    //   //cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible')
-    // })
+      // // Verify session storage
+      // cy.window().then((win) => {
+      //   const user = win.sessionStorage.getItem('user')
+      //   expect(user).to.not.be.null
+      //   expect(user).to.not.equal('null')
+      //   const userData = JSON.parse(user)
+      //   expect(userData).to.have.property('username')
+      // })
+      // Check for success toast
+      cy.get('.Toastify__toast--success', { timeout: 10000 }).should('be.visible')
+    })
 
     // it('should show error message for invalid credentials', () => {
     //   // Enter invalid credentials
