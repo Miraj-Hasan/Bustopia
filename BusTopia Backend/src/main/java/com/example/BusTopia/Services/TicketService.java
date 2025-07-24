@@ -95,4 +95,8 @@ public class TicketService {
 
         return savedTicket;
     }
+
+    public List<Ticket> getTicketsByUserId(Long userId) {
+        return ticketRepository.findAllByUserId(userId);
+    }
 }

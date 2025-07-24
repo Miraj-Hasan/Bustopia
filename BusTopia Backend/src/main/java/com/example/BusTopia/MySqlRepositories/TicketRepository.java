@@ -12,4 +12,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
     @Query("SELECT t FROM Ticket t WHERE t.ticketCode = :ticketCode AND t.bus.companyName = :companyName")
     Ticket findTicketByCodeAndCompany(@Param("ticketCode") String ticketCode,
                                       @Param("companyName") String companyName);
+
+    @Query("SELECT t FROM Ticket t WHERE t.user.id = :userId")
+    java.util.List<Ticket> findAllByUserId(@Param("userId") Long userId);
 }

@@ -27,4 +27,9 @@ public class TicketController {
         );
         return ResponseEntity.ok(ticket);
     }
+
+    @GetMapping("/user")
+    public ResponseEntity<?> getTicketsByUserId(@RequestParam("userId") Long userId) {
+        return ResponseEntity.ok(ticketService.getTicketsByUserId(userId));
+    }
 }

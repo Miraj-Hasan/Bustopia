@@ -263,3 +263,12 @@ export const initiatePayment = async (paymentData) => {
     throw error;
   }
 };
+
+// Fetch tickets bought by a user
+export const getUserTickets = async (userId) => {
+  const response = await axios.get(`${API_BASE_URL}/tickets/user`, {
+    params: { userId },
+    withCredentials: true,
+  });
+  return response;
+};

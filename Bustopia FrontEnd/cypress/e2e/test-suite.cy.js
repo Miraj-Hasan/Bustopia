@@ -3,6 +3,21 @@ describe('Bustopia Frontend E2E Test Suite', () => {
   
   // Test 1: Login Flow (must run first)
   describe('1. Authentication Tests', () => {
+    before(() => {
+      // Seed the login user before all tests in this block
+      cy.request({
+        method: 'POST',
+        url: 'https://localhost:8443/api/register',
+        body: {
+          email: 'mirajhasan1692001@gmail.com',
+          password: '123',
+          name: 'Test User',
+          phone: '+8801234567890',
+          gender: 'MALE'
+        },
+        failOnStatusCode: false // Ignore if user already exists
+      });
+    });
     beforeEach(() => {
       // Clear all storage before each test (more reliable)
       cy.clearAllStorage()
@@ -198,16 +213,26 @@ describe('Bustopia Frontend E2E Test Suite', () => {
     })
 
     it('should handle registration error for existing email', () => {
-      // Use an email that might already exist
+      // Register a user with a unique email, then try to register again with the same email
+      const uniqueEmail = `existing${Date.now()}@example.com`;
       cy.get('#name').type('Test User')
-      cy.get('#email').type('mirajhasan1692001@gmail.com') // Existing email
+      cy.get('#email').type(uniqueEmail)
       cy.get('#phone').type('+8801234567890')
       cy.get('#password').type('testPassword123')
       cy.get('#gender').select('MALE')
-      
       cy.get('button[type="submit"]').click()
-      
-      // Check for error message (assuming it shows registration failed)
+      cy.get('button[type="submit"]').should('contain', 'Registering...')
+      cy.get('.spinner-border').should('be.visible')
+      cy.contains('Please Verify Your Email!', { timeout: 10000 }).should('be.visible')
+      cy.url().should('include', '/login')
+      // Try to register again with the same email
+      cy.visit('/register')
+      cy.get('#name').type('Test User')
+      cy.get('#email').type(uniqueEmail)
+      cy.get('#phone').type('+8801234567890')
+      cy.get('#password').type('testPassword123')
+      cy.get('#gender').select('MALE')
+      cy.get('button[type="submit"]').click()
       cy.contains('Registration failed', { timeout: 10000 }).should('be.visible')
     })
 
