@@ -285,7 +285,7 @@ const BuyTicket = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="coach_type">From:</label>
+            <label htmlFor="coach_type">Coach Type:</label>
             <select
               id="coach_type"
               name="category"
@@ -300,7 +300,7 @@ const BuyTicket = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="min_budget">min_budget:</label>
+            <label htmlFor="min_budget">Minimum Budget:</label>
             <input
               type="text"
               placeholder="Minimum Budget"
@@ -311,7 +311,7 @@ const BuyTicket = () => {
 
 
           <div className="form-group">
-            <label htmlFor="max_budget">From:</label>
+            <label htmlFor="max_budget">Maximum Budget:</label>
             <input
               type="text"
               placeholder="Maximum Budget"

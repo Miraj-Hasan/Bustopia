@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -96,7 +97,31 @@ public class TicketService {
         return savedTicket;
     }
 
-    public List<Ticket> getTicketsByUserId(Long userId) {
-        return ticketRepository.findAllByUserId(userId);
+    @Transactional
+    public void cancelTicket(Integer ticketId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        // Update seat availability mapping
+        SeatAvailabilityMapping seatAvailability = seatAvailabilityRepository
+                .findByBus_BusIdAndJourneyDate(ticket.getBus().getBusId(), ticket.getDate())
+                .orElseThrow(() -> new RuntimeException("Seat availability mapping not found"));
+        Map<String, Long> bookedSeats = seatAvailability.getBookedSeats();
+        for (String seat : ticket.getSeats()) {
+            bookedSeats.remove(seat);
+        }
+        seatAvailability.setBookedSeats(bookedSeats);
+        seatAvailability.setAvailableSeats(seatAvailability.getAvailableSeats() + ticket.getSeats().size());
+        seatAvailabilityRepository.save(seatAvailability);
+        // Delete the ticket
+        ticketRepository.delete(ticket);
+    }
+
+    public List<Ticket> getTicketsByUser(UserEntity user) {
+        try {
+            return ticketRepository.findByUser(user);
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
 }

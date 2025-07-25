@@ -272,3 +272,8 @@ export const getUserTickets = async (userId) => {
   });
   return response;
 };
+
+// Cancel a ticket by ticketId
+export const cancelTicket = async (ticketId) => {
+  return await axios.post(`${API_BASE_URL}/tickets/cancel`, { ticketId }, { withCredentials: true });
+};
