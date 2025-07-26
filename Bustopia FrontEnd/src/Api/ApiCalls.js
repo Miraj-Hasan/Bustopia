@@ -277,3 +277,24 @@ export const getUserTickets = async (userId) => {
 export const cancelTicket = async (ticketId) => {
   return await axios.post(`${API_BASE_URL}/tickets/cancel`, { ticketId }, { withCredentials: true });
 };
+
+export const getTicketSales = async () => {
+  const response = await axios.get(`${API_BASE_URL}/tickets/admin/ticket-sales`, {
+    withCredentials: true,
+  });
+  return response;
+};
+
+export const getAllTickets = async () => {
+  const response = await axios.get(`${API_BASE_URL}/tickets/admin/all-tickets`, {
+    withCredentials: true,
+  });
+  return response;
+};
+
+export const getAllReviews = async () => {
+  const response = await axios.get(`${API_BASE_URL}/tickets/admin/all-reviews`, {
+    withCredentials: true,
+  });
+  return response;
+};

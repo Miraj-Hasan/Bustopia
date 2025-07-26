@@ -48,4 +48,19 @@ public class TicketController {
         UserEntity user = userRepository.findById(userId).get();
         return ResponseEntity.ok(ticketService.getTicketsByUser(user));
     }
+
+    @GetMapping("/admin/ticket-sales")
+    public ResponseEntity<?> getTicketSales() {
+        return ResponseEntity.ok(ticketService.getTicketSalesForAdmin());
+    }
+
+    @GetMapping("/admin/all-tickets")
+    public ResponseEntity<?> getAllTickets() {
+        return ResponseEntity.ok(ticketService.getAllTicketsForAnalytics());
+    }
+
+    @GetMapping("/admin/all-reviews")
+    public ResponseEntity<?> getAllReviews() {
+        return ResponseEntity.ok(ticketService.getAllReviewsForAnalytics());
+    }
 }

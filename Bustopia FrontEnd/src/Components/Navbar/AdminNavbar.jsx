@@ -10,7 +10,7 @@ export function AdminNavbar({name}) {
     >
       {/* Logo + Admin Title */}
       <Link
-        to="/admin"
+        to="/admin/dashboard"
         className="mb-1 d-flex align-items-center justify-content-center text-white text-decoration-none"
       >
         <img src={assets.logo} alt="Logo" height="164" className="me-2" />
@@ -26,22 +26,10 @@ export function AdminNavbar({name}) {
             to="/admin/dashboard"
             className="nav-link text-white hover-effect"
           >
-            <i className="fas fa-tachometer-alt me-2"></i> Dashboard
+            <i className="fas fa-tachometer-alt me-2"></i> Admin Dashboard
           </Link>
         </li>
-        <li>
-          <Link to="/admin/users" className="nav-link text-white hover-effect">
-            <i className="fas fa-users-cog me-2"></i> Manage Users
-          </Link>
-        </li>
-        <li>
-          <Link
-            to="/admin/chatrooms"
-            className="nav-link text-white hover-effect"
-          >
-            <i className="fas fa-comments me-2"></i> Chatrooms
-          </Link>
-        </li>
+        
         <li>
           <Link
             to="/admin/analytics"
@@ -50,14 +38,7 @@ export function AdminNavbar({name}) {
             <i className="fas fa-chart-line me-2"></i> Analytics
           </Link>
         </li>
-        <li>
-          <Link
-            to="/admin/settings"
-            className="nav-link text-white hover-effect"
-          >
-            <i className="fas fa-cog me-2"></i> Settings
-          </Link>
-        </li>
+        
         <li className="mt-3">
           <Link to="/logout" className="nav-link text-danger hover-effect">
             <i className="fas fa-sign-out-alt me-2"></i> Logout
@@ -69,7 +50,7 @@ export function AdminNavbar({name}) {
 
       <div className="text-white-50 small mt-auto">
         <hr className="text-white" />
-        <p className="mb-1 text-center">EchoRoom Admin</p>
+        <p className="mb-1 text-center">BusTopia Admin</p>
       </div>
     </div>
   );

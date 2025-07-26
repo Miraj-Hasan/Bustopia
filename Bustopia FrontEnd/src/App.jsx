@@ -17,6 +17,8 @@ import BuyTicket from './Pages/BuyTicket/BuyTicket';
 import Payment from './Pages/Payment/Payment';
 import PaymentResult from './Pages/Payment/PaymentResult';
 import CancelTicket from './Pages/CancelTicket/CancelTicket';
+import Analytics from './Pages/Analytics/Analytics';
+import AdminDashboard from './Pages/AdminDashboard/AdminDashboard';
 
 function App() {
 
@@ -69,6 +71,24 @@ function App() {
         <Route path="/ticket-verification" element={<TicketVerification />} />
         <Route path="/payment-result" element={<PaymentResult />} />
         <Route path="/cancel-ticket" element={<CancelTicket />} />
+
+        {/* Admin Routes */}
+        <Route
+          path="/admin/analytics"
+          element={
+            <ProtectedRoute>
+              <Analytics />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="*" element={<h1>Balchal dio na guru</h1>} />
       </Routes>
