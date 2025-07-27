@@ -34,6 +34,8 @@ services:
       - GROK_URL=${GROK_URL}
       - SSLCOMMERZ_ID=${SSLCOMMERZ_ID}
       - SSLCOMMERZ_PASSWORD=${SSLCOMMERZ_PASSWORD}
+    depends_on:
+      - db
     restart: unless-stopped
 
   frontend:
@@ -47,6 +49,25 @@ services:
     networks:
       - bustopia-network
     restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    container_name: bustopia-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: bustopia
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./db/init_data.sql:/docker-entrypoint-initdb.d/init_data.sql:ro
+    networks:
+      - bustopia-network
+
+volumes:
+  db-data:
 
 networks:
   bustopia-network:

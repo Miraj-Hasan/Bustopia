@@ -3,8 +3,8 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ./BusTopia Backend         # 👈 Path to your backend Dockerfile
-      dockerfile: Dockerfile     # 👈 (optional if it's named Dockerfile)
+      context: ./BusTopia Backend
+      dockerfile: Dockerfile
     container_name: bustopia-backend
     ports:
       - "8080:8080"
@@ -36,8 +36,8 @@ services:
 
   frontend:
     build:
-      context: ./BusTopia Frontend        # 👈 Path to your frontend Dockerfile
-      dockerfile: Dockerfile     # 👈 (optional)
+      context: ./BusTopia Frontend
+      dockerfile: Dockerfile
     container_name: bustopia-frontend
     ports:
       - "4001:80"
@@ -47,6 +47,25 @@ services:
     networks:
       - bustopia-network
     restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    container_name: bustopia-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: bustopia
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./db/init_data.sql:/docker-entrypoint-initdb.d/init_data.sql:ro
+    networks:
+      - bustopia-network
+
+volumes:
+  db-data:
 
 networks:
   bustopia-network:
