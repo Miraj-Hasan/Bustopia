@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { fetchBusInfo, getReviewsByBusId } from "../../Api/ApiCalls";
+import { fetchBusInfo, getReviewsByBusId, getSeatLayout, getBookedSeats } from "../../Api/ApiCalls";
 import { Navbar } from "../../Components/Navbar/Navbar";
 import { UserContext } from "../../Context/UserContext";
 import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -14,6 +15,17 @@ const BusInfo = () => {
   const [error, setError] = useState(null);
   const { user } = useContext(UserContext);
   const [reviews, setReviews] = useState([]);
+  const [source, setSource] = useState("");
+  const [destination, setDestination] = useState("");
+  const [destinationOptions, setDestinationOptions] = useState([]);
+  const [date, setDate] = useState("");
+  const [selectedSeatLayout, setSelectedSeatLayout] = useState(null);
+  const [bookedSeats, setBookedSeats] = useState({});
+  const [showSeatModal, setShowSeatModal] = useState(false);
+  const [seatLoading, setSeatLoading] = useState(false);
+  const [selectedSeats, setSelectedSeats] = useState([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,6 +55,144 @@ const BusInfo = () => {
     };
     fetchReviews();
   }, [busid]);
+
+  // Update destination options based on selected source
+  useEffect(() => {
+    if (!source || !busInfo?.route?.stops) {
+      setDestination("");
+      setDestinationOptions([]);
+      return;
+    }
+
+    const stops = busInfo.route.stops;
+    const sourceIndex = stops.indexOf(source);
+
+    if (sourceIndex !== -1 && sourceIndex < stops.length - 1) {
+      const newDestOptions = stops.slice(sourceIndex + 1);
+      setDestination("");
+      setDestinationOptions(newDestOptions);
+    } else {
+      setDestinationOptions([]);
+    }
+  }, [source, busInfo]);
+
+
+  const getTodayDate = () => {
+    return new Date().toISOString().split("T")[0];
+  };
+
+  const getMaxDate = () => {
+    const max = new Date();
+    max.setDate(max.getDate() + 14);
+    return max.toISOString().split("T")[0];
+  };
+
+  const handleSelectSeats = async () => {
+    if (!user) {
+      setError("Please log in to select seats.");
+      navigate("/login");
+      return;
+    }
+
+    setSeatLoading(true);
+    try {
+      const [layoutResponse, bookedResponse] = await Promise.all([
+        getSeatLayout(busid),
+        getBookedSeats(busid, date),
+      ]);
+      setSelectedSeatLayout(layoutResponse.data);
+      setBookedSeats(bookedResponse.data || {});
+      setShowSeatModal(true);
+    } catch (err) {
+      setError("Failed to load seat layout or booked seats.");
+      console.error(err);
+    } finally {
+      setSeatLoading(false);
+    }
+  };
+
+  const handleSeatClick = (seatLabel) => {
+    if (bookedSeats[seatLabel]) return;
+    if (selectedSeats.includes(seatLabel)) {
+      setSelectedSeats((prev) => prev.filter((seat) => seat !== seatLabel));
+    } else if (selectedSeats.length < 4) {
+      setSelectedSeats((prev) => [...prev, seatLabel]);
+    } else {
+      setError("You can select up to 4 seats only.");
+    }
+  };
+
+  const handleBookTicket = async () => {
+    if (!user) {
+      setError("Please log in to book a ticket.");
+      navigate("/login");
+      return;
+    }
+
+    if (selectedSeats.length === 0) {
+      setError("Please select at least one seat.");
+      return;
+    }
+
+    const stops = busInfo.route?.stops || [];
+    const priceMap = busInfo.priceMappings || [];
+    const timeMap = busInfo.timeMappings || [];
+
+    const sourceIndex = stops.indexOf(source);
+    const destinationIndex = stops.indexOf(destination);
+
+    if (sourceIndex === -1 || destinationIndex === -1 || sourceIndex >= destinationIndex) {
+      setError("Invalid source or destination selection.");
+      return;
+    }
+
+    // 🕒 1. Calculate departure time by summing time durations from start → source
+    let totalDurationToSource = 0;
+    for (let i = 0; i < sourceIndex; i++) {
+      const from = stops[i];
+      const to = stops[i + 1];
+
+      const timeObj = timeMap.find(
+        (t) => (t.stop1 === from && t.stop2 === to) || (t.stop1 === to && t.stop2 === from)
+      );
+
+      totalDurationToSource += Number(timeObj?.duration || 0);
+    }
+
+    const baseTime = new Date(`1970-01-01T${busInfo.startTime}Z`);
+    const departureTimeDate = new Date(baseTime.getTime() + totalDurationToSource * 60000);
+    const departureTime = departureTimeDate.toISOString().slice(11, 16); // "HH:mm"
+
+    // 💰 2. Calculate price from source → destination by summing segment prices
+    let totalPrice = 0;
+    for (let i = sourceIndex; i < destinationIndex; i++) {
+      const from = stops[i];
+      const to = stops[i + 1];
+
+      const priceObj = priceMap.find(
+        (p) => (p.stop1 === from && p.stop2 === to) || (p.stop1 === to && p.stop2 === from)
+      );
+
+      totalPrice += Number(priceObj?.price || 0);
+    }
+
+    const bookingData = {
+      userId: user.id,
+      busId: busid,
+      source,
+      destination,
+      date,
+      time: departureTime,
+      seats: selectedSeats,
+      price: totalPrice * selectedSeats.length,
+    };
+
+    setShowSeatModal(false);
+    setSelectedSeats([]);
+    navigate("/payment", { state: { booking: bookingData } });
+  };
+
+
 
   if (loading) {
     return (
@@ -214,6 +364,259 @@ const BusInfo = () => {
           </div>
 
           {/* Main Content */}
+
+          {/* Buy Ticket Section */}
+          <div className="row mb-4">
+            <div className="col-12">
+              <div className="card shadow-sm">
+                <div className="card-header bg-danger text-white">
+                  <h3 className="card-title mb-0">
+                    <i className="bi bi-ticket-perforated me-2"></i>Buy Ticket
+                  </h3>
+                </div>
+                <div className="card-body">
+                  <form className="row g-3">
+                    {/* Source Dropdown */}
+                    <div className="col-md-4">
+                      <label htmlFor="source" className="form-label fw-semibold">
+                        Source
+                      </label>
+                      <select
+                        id="source"
+                        className="form-select"
+                        value={source}
+                        onChange={(e) => setSource(e.target.value)}
+                      >
+                        <option value="">Select Source</option>
+                        {route?.stops.slice(0, -1).map((stop, i) => (
+                          <option key={i} value={stop}>
+                            {stop}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Destination Dropdown */}
+                    <div className="col-md-4">
+                      <label htmlFor="destination" className="form-label fw-semibold">
+                        Destination
+                      </label>
+                      <select
+                        id="destination"
+                        className="form-select"
+                        value={destination}
+                        onChange={(e) => setDestination(e.target.value)}
+                        disabled={!source}
+                      >
+                        <option value="">Select Destination</option>
+                        {destinationOptions.map((stop, i) => (
+                          <option key={i} value={stop}>
+                            {stop}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Date Picker */}
+                    <div className="col-md-4">
+                      <label htmlFor="date" className="form-label fw-semibold">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        id="date"
+                        name="date"
+                        className="form-control"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        min={getTodayDate()}
+                        max={getMaxDate()}
+                      />
+                    </div>
+
+                    {/* Select Seats Button */}
+                    <div className="col-12 text-end">
+                      <button
+                        type="button"
+                        className="btn btn-success px-4"
+                        onClick={handleSelectSeats}
+                        disabled={!source || !destination || !date || source === destination}
+                      >
+                        <i className="bi bi-eye me-1"></i>Select Seats
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {showSeatModal && selectedSeatLayout && (
+            <div
+              className="seat-modal-overlay"
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "rgba(0,0,0,0.5)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <div
+                className="seat-modal"
+                style={{
+                  background: "#fff",
+                  padding: "20px",
+                  borderRadius: "8px",
+                  maxWidth: "600px",
+                  width: "90%",
+                }}
+              >
+                <h3 style={{ fontSize: "1.5rem", marginBottom: "15px" }}>
+                  Select Seats for {busInfo.companyName} - {busid}
+                </h3>
+                <p>
+                  {selectedSeatLayout.name} ({selectedSeatLayout.category})
+                </p>
+                <div
+                  className="seat-grid"
+                  style={{ display: "grid", gap: "10px", marginBottom: "20px" }}
+                >
+                  {selectedSeatLayout.layout.map((row, rowIndex) => (
+                    <div
+                      key={rowIndex}
+                      className="seat-row"
+                      style={{ display: "flex", gap: "10px" }}
+                    >
+                      {row.map((seatLabel, colIndex) => (
+                        <div
+                          key={`${rowIndex}-${colIndex}`}
+                          className={`seat ${seatLabel === "" ? "empty" : "available"
+                            } ${bookedSeats[seatLabel] ? "booked" : ""} ${selectedSeats.includes(seatLabel) ? "selected" : ""
+                            }`}
+                          onClick={() =>
+                            seatLabel !== "" && handleSeatClick(seatLabel)
+                          }
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            border: "1px solid #ccc",
+                            borderRadius: "4px",
+                            cursor:
+                              seatLabel !== "" && !bookedSeats[seatLabel]
+                                ? "pointer"
+                                : "not-allowed",
+                            background: bookedSeats[seatLabel]
+                              ? "#dc3545"
+                              : selectedSeats.includes(seatLabel)
+                                ? "#28a745"
+                                : seatLabel === ""
+                                  ? "#f8f9fa"
+                                  : "#fff",
+                          }}
+                        >
+                          {seatLabel || " "}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+                <div
+                  className="seat-legend"
+                  style={{ display: "flex", gap: "20px", marginBottom: "20px" }}
+                >
+                  <div>
+                    <span
+                      className="seat available"
+                      style={{
+                        display: "inline-block",
+                        width: "20px",
+                        height: "20px",
+                        background: "#fff",
+                        border: "1px solid #ccc",
+                        marginRight: "5px",
+                      }}
+                    ></span>
+                    Available
+                  </div>
+                  <div>
+                    <span
+                      className="seat booked"
+                      style={{
+                        display: "inline-block",
+                        width: "20px",
+                        height: "20px",
+                        background: "#dc3545",
+                        border: "1px solid #ccc",
+                        marginRight: "5px",
+                      }}
+                    ></span>
+                    Booked
+                  </div>
+                  <div>
+                    <span
+                      className="seat selected"
+                      style={{
+                        display: "inline-block",
+                        width: "20px",
+                        height: "20px",
+                        background: "#28a745",
+                        border: "1px solid #ccc",
+                        marginRight: "5px",
+                      }}
+                    ></span>
+                    Selected
+                  </div>
+                </div>
+                <div
+                  className="seat-modal-actions"
+                  style={{ display: "flex", gap: "10px" }}
+                >
+                  <button
+                    onClick={() => setShowSeatModal(false)}
+                    className="cancel-button"
+                    style={{
+                      padding: "8px 16px",
+                      backgroundColor: "#6c757d",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleBookTicket}
+                    className="book-button"
+                    disabled={selectedSeats.length === 0}
+                    style={{
+                      padding: "8px 16px",
+                      backgroundColor:
+                        selectedSeats.length === 0 ? "#ccc" : "#007bff",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "6px",
+                      cursor:
+                        selectedSeats.length === 0 ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    Book {selectedSeats.length} Seat
+                    {selectedSeats.length !== 1 ? "s" : ""}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+
           <div className="row g-4">
             {/* Route Stops */}
             <div className="col-lg-6">
@@ -229,13 +632,12 @@ const BusInfo = () => {
                       <div key={i} className="d-flex align-items-center mb-3">
                         <div className="stop-indicator me-3">
                           <div
-                            className={`rounded-circle d-flex align-items-center justify-content-center fw-bold text-white ${
-                              i === 0
-                                ? "bg-success"
-                                : i === route.stops.length - 1
+                            className={`rounded-circle d-flex align-items-center justify-content-center fw-bold text-white ${i === 0
+                              ? "bg-success"
+                              : i === route.stops.length - 1
                                 ? "bg-danger"
                                 : "bg-secondary"
-                            }`}
+                              }`}
                             style={{
                               width: "32px",
                               height: "32px",
@@ -293,11 +695,10 @@ const BusInfo = () => {
                         {row.map((seat, seatIndex) => (
                           <div
                             key={seatIndex}
-                            className={`seat d-flex justify-content-center align-items-center border rounded me-1 ${
-                              seat === "_"
-                                ? "bg-secondary bg-opacity-25"
-                                : "bg-white shadow-sm"
-                            }`}
+                            className={`seat d-flex justify-content-center align-items-center border rounded me-1 ${seat === "_"
+                              ? "bg-secondary bg-opacity-25"
+                              : "bg-white shadow-sm"
+                              }`}
                             style={{
                               width: "35px",
                               height: "35px",

@@ -21,8 +21,13 @@ export function UserNavbar({name}) {
       {/* User Navigation */}
       <ul className="nav nav-pills flex-column mb-auto">
         <li>
+          <Link to="/homepage" className="nav-link text-white hover-effect">
+            <i className="fas fa-user-circle me-2"></i> Homepage
+          </Link>
+        </li>
+        <li>
           <Link to="/profile" className="nav-link text-white hover-effect">
-            <i className="fas fa-user-circle me-2"></i> Profile
+            <i className="fas fa-user-circle me-2"></i> My Profile
           </Link>
         </li>
         <li>

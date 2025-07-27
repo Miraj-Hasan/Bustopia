@@ -91,6 +91,8 @@ function App() {
         <Route path="/payment-result" element={<PaymentResult />} />
         <Route path="/cancel-ticket" element={<CancelTicket />} />
 
+        <Route path="/homepage" element={<Home />} />
+
         {/* Admin Routes */}
         <Route
           path="/admin/analytics"
