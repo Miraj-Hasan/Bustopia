@@ -8,8 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Clean install dependencies (this uses gnu version of native modules)
-RUN npm cache clean --force
-RUN npm install
+RUN npm ci
 
 # Copy source code
 COPY . .
