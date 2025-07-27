@@ -109,7 +109,7 @@ function App() {
           }
         />
 
-        <Route path="*" element={<h1>Balchal dio na guru</h1>} />
+        <Route path="*" element={<h1>Invalid Path, Man</h1>} />
       </Routes>
       <ToastContainer
         position="top-center"

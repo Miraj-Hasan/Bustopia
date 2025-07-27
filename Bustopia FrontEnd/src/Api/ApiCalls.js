@@ -103,6 +103,7 @@ export const getSpecificBus = async (license, userId) => {
 }
 
 export const getSpecificCompanyBuses = async (companyName, pageToFetch, size,  userId) => {
+
   const response = await axios.get(`${API_BASE_URL}/api/getSpecificCompanyBuses`, {
     params: { companyName: companyName, 
       page: pageToFetch,
@@ -365,4 +366,42 @@ export const triggerDemandUpdate = async () => {
     }
   });
   return response;
+};
+
+
+// Homepage api calls
+
+export const getBusesByRoute = async (source, destination) => {
+  try {
+    console.log(source, destination);
+    const response = await axios.get(
+      `${API_BASE_URL}/home/route`,
+      {
+        withCredentials: true,
+        params: { source, destination },
+      }
+    );
+    return response.data; // Returns list of BusForRouteDTO
+  } catch (error) {
+    console.error("Failed to fetch buses for route:", error);
+    return [];
+  }
+};
+
+export const getBusesByCompany = async (companyName) => {
+  try {
+    if (!companyName) {
+      console.error("Company name is missing or invalid");
+      return [];
+    }
+    const response = await axios.get(`${API_BASE_URL}/home/company`, {
+      withCredentials: true,
+      params: { companyName },
+    });
+    console.log("Response data:", response.data);
+    return response.data; // Returns list of Bus objects
+  } catch (error) {
+    console.error("Failed to fetch buses for company:", error);
+    return [];
+  }
 };
