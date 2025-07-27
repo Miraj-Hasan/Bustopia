@@ -10,7 +10,7 @@ export function AdminNavbar({name}) {
     >
       {/* Logo + Admin Title */}
       <Link
-        to="/admin/dashboard"
+        to="/"
         className="mb-1 d-flex align-items-center justify-content-center text-white text-decoration-none"
       >
         <img src={assets.logo} alt="Logo" height="164" className="me-2" />

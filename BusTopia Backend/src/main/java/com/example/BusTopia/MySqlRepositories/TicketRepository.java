@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -30,4 +32,20 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
         GROUP BY pm.stop1, pm.stop2, pm.price
     """, nativeQuery = true)
     List<Object[]> getTicketSalesByRouteWithPrice();
+
+    @Query("""
+    SELECT t FROM Ticket t
+    WHERE t.source = :source
+      AND t.destination = :destination
+      AND t.bus.category = :category
+      AND t.date >= :cutoff
+""")
+    List<Ticket> findBySourceAndDestinationAndCategorySinceDate(
+            @Param("source") String source,
+            @Param("destination") String destination,
+            @Param("category") String category,
+            @Param("cutoff") java.time.LocalDate cutoff);
+
+    List<Ticket> findAllByDateAfter(LocalDate cutoffDate);
+
 }

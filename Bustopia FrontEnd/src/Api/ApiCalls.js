@@ -311,3 +311,58 @@ export const fetchBusInfo = async (busId) => {
     throw error;
   }
 };
+
+
+export const getCurrentPriceConfig = async () => {
+  const response = await axios.get(`${API_BASE_URL}/api/admin/price-config`, {
+    withCredentials: true,
+  });
+  return response;
+};
+
+export const updatePriceConfig = async (configData) => {
+  const response = await axios.post(`${API_BASE_URL}/api/admin/price-config`, configData, {
+    withCredentials: true,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  return response;
+};
+
+export const triggerPriceUpdate = async () => {
+  const response = await axios.post(`${API_BASE_URL}/api/admin/trigger-price-update`, {}, {
+    withCredentials: true,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  return response;
+};
+
+export const getCurrentDemandConfig = async () => {
+  const response = await axios.get(`${API_BASE_URL}/api/admin/demand-config`, {
+    withCredentials: true,
+  });
+  return response;
+};
+
+export const updateDemandConfig = async (configData) => {
+  const response = await axios.post(`${API_BASE_URL}/api/admin/demand-config`, configData, {
+    withCredentials: true,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  return response;
+};
+
+export const triggerDemandUpdate = async () => {
+  const response = await axios.get(`${API_BASE_URL}/api/admin/reroute`, {
+    withCredentials: true,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  return response;
+};

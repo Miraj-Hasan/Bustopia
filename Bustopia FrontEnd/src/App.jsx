@@ -19,9 +19,27 @@ import PaymentResult from './Pages/Payment/PaymentResult';
 import CancelTicket from './Pages/CancelTicket/CancelTicket';
 import Analytics from './Pages/Analytics/Analytics';
 import AdminDashboard from './Pages/AdminDashboard/AdminDashboard';
+import AdminWelcome from './Pages/AdminWelcome/AdminWelcome';
+import { useContext } from 'react';
+import { UserContext } from './Context/UserContext';
 import BusInfo from './Pages/BusInfo/BusInfo';
 
 function App() {
+  const { user } = useContext(UserContext);
+
+  // Conditional component for root route
+  const RootComponent = () => {
+    if (user && user.role === 'ROLE_ADMIN') {
+      return <AdminWelcome />;
+    } else {
+      return (
+        <>
+          <Home />
+          <ChatWidget />
+        </>
+      );
+    }
+  };
 
   return (
     <>
@@ -30,8 +48,7 @@ function App() {
           path="/"
           element={
             <ProtectedRoute>
-              <Home />
-              <ChatWidget />
+              <RootComponent />
             </ProtectedRoute>
           }
         />
