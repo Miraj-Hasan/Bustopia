@@ -373,7 +373,6 @@ export const triggerDemandUpdate = async () => {
 
 export const getBusesByRoute = async (source, destination) => {
   try {
-    console.log(source, destination);
     const response = await axios.get(
       `${API_BASE_URL}/home/route`,
       {
@@ -398,7 +397,6 @@ export const getBusesByCompany = async (companyName) => {
       withCredentials: true,
       params: { companyName },
     });
-    console.log("Response data:", response.data);
     return response.data; // Returns list of Bus objects
   } catch (error) {
     console.error("Failed to fetch buses for company:", error);
