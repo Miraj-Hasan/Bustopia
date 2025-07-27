@@ -11,7 +11,7 @@ export default defineConfig({
     css: true,
     include: ['**/*.{test,spec}.{js,jsx,ts,tsx}'],
     coverage: {
-      reporter: ['text', 'json', 'html'],
+      reporter: ['json', 'html', 'lcov'],
       exclude: [
         'node_modules/',
         'src/setupTests.js',
