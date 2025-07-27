@@ -61,6 +61,7 @@ function App() {
             </ProtectedRoute>
           }
         ></Route>
+        
 
         <Route path="/logout" element={<LogOut />} />
 
