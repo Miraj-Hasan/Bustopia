@@ -410,8 +410,8 @@ const BuyTicket = () => {
               <input
                 type="number"
                 id="min_budget"
-                name="Minimum ticket price"
-                placeholder="0"
+                name="min_budget"
+                placeholder="Minimum ticket price"
                 value={formData.min_budget}
                 onChange={handleInputChange}
                 style={{
@@ -733,41 +733,50 @@ const BuyTicket = () => {
                     className="seat-row"
                     style={{ display: "flex", gap: "10px" }}
                   >
-                    {row.map((seatLabel, colIndex) => (
-                      <div
-                        key={`${rowIndex}-${colIndex}`}
-                        className={`seat ${
-                          seatLabel === "" ? "empty" : "available"
-                        } ${bookedSeats[seatLabel] ? "booked" : ""} ${
-                          selectedSeats.includes(seatLabel) ? "selected" : ""
-                        }`}
-                        onClick={() =>
-                          seatLabel !== "" && handleSeatClick(seatLabel)
-                        }
-                        style={{
-                          width: "40px",
-                          height: "40px",
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          border: "1px solid #ccc",
-                          borderRadius: "4px",
-                          cursor:
-                            seatLabel !== "" && !bookedSeats[seatLabel]
-                              ? "pointer"
-                              : "not-allowed",
-                          background: bookedSeats[seatLabel]
-                            ? "#dc3545"
-                            : selectedSeats.includes(seatLabel)
-                            ? "#28a745"
-                            : seatLabel === ""
-                            ? "#f8f9fa"
-                            : "#fff",
-                        }}
-                      >
-                        {seatLabel || " "}
-                      </div>
-                    ))}
+                    {row.map((seatLabel, colIndex) => {
+                      // Determine seat background color
+                      let seatBackground;
+                      if (seatLabel === "") {
+                        seatBackground = "#f8f9fa"; // Empty seat
+                      } else if (bookedSeats[seatLabel]) {
+                        seatBackground = "#dc3545"; // Booked seat (red)
+                      } else if (selectedSeats.includes(seatLabel)) {
+                        seatBackground = "#007bff"; // Selected seat (blue)
+                      } else {
+                        seatBackground = "#28a745"; // Available seat (green)
+                      }
+
+                      return (
+                        <div
+                          key={`${rowIndex}-${colIndex}`}
+                          className={`seat ${
+                            seatLabel === "" ? "empty" : "available"
+                          } ${bookedSeats[seatLabel] ? "booked" : ""} ${
+                            selectedSeats.includes(seatLabel) ? "selected" : ""
+                          }`}
+                          onClick={() =>
+                            seatLabel !== "" && handleSeatClick(seatLabel)
+                          }
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            border: "1px solid #ccc",
+                            borderRadius: "4px",
+                            cursor:
+                              seatLabel !== "" && !bookedSeats[seatLabel]
+                                ? "pointer"
+                                : "not-allowed",
+                            background: seatBackground,
+                            color: seatLabel === "" ? "#666" : "#fff", // Text color
+                          }}
+                        >
+                          {seatLabel || " "}
+                        </div>
+                      );
+                    })}
                   </div>
                 ))}
               </div>
@@ -782,7 +791,7 @@ const BuyTicket = () => {
                       display: "inline-block",
                       width: "20px",
                       height: "20px",
-                      background: "#fff",
+                      background: "#28a745", // Green for available
                       border: "1px solid #ccc",
                       marginRight: "5px",
                     }}
@@ -796,7 +805,7 @@ const BuyTicket = () => {
                       display: "inline-block",
                       width: "20px",
                       height: "20px",
-                      background: "#dc3545",
+                      background: "#dc3545", // Red for booked
                       border: "1px solid #ccc",
                       marginRight: "5px",
                     }}
@@ -810,7 +819,7 @@ const BuyTicket = () => {
                       display: "inline-block",
                       width: "20px",
                       height: "20px",
-                      background: "#28a745",
+                      background: "#007bff", // Blue for selected
                       border: "1px solid #ccc",
                       marginRight: "5px",
                     }}
