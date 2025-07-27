@@ -18,7 +18,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
     Ticket findTicketByCodeAndCompany(@Param("ticketCode") String ticketCode,
                                       @Param("companyName") String companyName);
 
-    List<Ticket> findByUser(UserEntity user);
+    List<Ticket> findByUserOrderByTicketIdDesc(UserEntity user);
 
     @Query(value = """
         SELECT 
