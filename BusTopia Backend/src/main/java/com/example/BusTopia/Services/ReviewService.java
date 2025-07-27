@@ -10,6 +10,7 @@ import com.example.BusTopia.DatabaseEntity.Review;
 import com.example.BusTopia.MySqlRepositories.BusRepository;
 import com.example.BusTopia.MySqlRepositories.ReviewRepository;
 import com.example.BusTopia.MySqlRepositories.UserRepository;
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -123,7 +124,7 @@ public class ReviewService {
         )).toList();
     }
 
-    @Transactional
+    @PostConstruct
     public void resetReviewSequence() {
         reviewRepository.resetSequence();
     }
