@@ -278,7 +278,7 @@ public class AssistantAgent {
 
                     return "Of course! " + busName + " tickets are available on our platform. With an average bus rating of " + finalRating + " /5.";
                 }
-                else return "Sorry, we don't have " + busName + " tickers available on our platform.";
+                else return "Sorry, we don't have " + busName + " tickets available on our platform.";
 
             default:
                 return "Sorry, something went wrong while processing your request.";

@@ -124,7 +124,7 @@ public class TicketService {
 
     public List<Ticket> getTicketsByUser(UserEntity user) {
         try {
-            return ticketRepository.findByUser(user);
+            return ticketRepository.findByUserOrderByTicketIdDesc(user);
         }catch (Exception e){
             e.printStackTrace();
             return new ArrayList<>();
