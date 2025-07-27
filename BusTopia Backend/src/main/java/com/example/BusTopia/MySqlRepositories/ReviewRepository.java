@@ -11,12 +11,8 @@ import java.util.List;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
-    @Modifying
-    @Query(
-            value = "ALTER SEQUENCE review_review_id_seq RESTART WITH (SELECT MAX(review_id) + 1 FROM review)",
-            nativeQuery = true
-    )
-    void resetSequence();
+    @Query(value = "SELECT setval('review_review_id_seq', COALESCE((SELECT MAX(review_id) FROM review), 0) + 1, false)", nativeQuery = true)
+    Long resetSequence();
 
     @Query("SELECT r FROM Review r WHERE r.bus.busId = :busId")
     List<Review> findByBusId(int busId);

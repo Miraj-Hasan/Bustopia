@@ -13,6 +13,8 @@ import com.example.BusTopia.MySqlRepositories.UserRepository;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -124,9 +126,11 @@ public class ReviewService {
         )).toList();
     }
 
-    @PostConstruct
+    @Transactional
+    @EventListener(ContextRefreshedEvent.class)
     public void resetReviewSequence() {
-        reviewRepository.resetSequence();
+        Long newVal = reviewRepository.resetSequence();
+        System.out.println("Review sequence reset to: " + newVal);
     }
 
     @Transactional
