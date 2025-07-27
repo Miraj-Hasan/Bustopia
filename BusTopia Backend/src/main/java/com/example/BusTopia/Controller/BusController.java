@@ -1,12 +1,15 @@
 package com.example.BusTopia.Controller;
 
+import com.example.BusTopia.DTOs.BusInfo.BusInfoDto;
 import com.example.BusTopia.DTOs.BuyTicket.BusSearchRequest;
 import com.example.BusTopia.DTOs.BuyTicket.BusSearchResponse;
 import com.example.BusTopia.DatabaseEntity.Bus;
 import com.example.BusTopia.MySqlRepositories.PriceMappingRepository;
 import com.example.BusTopia.MySqlRepositories.SeatAvailabilityMappingRepository;
 import com.example.BusTopia.Services.BusService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,5 +65,15 @@ public class BusController {
         }).toList();
 
         return ResponseEntity.ok(finalResponses);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BusInfoDto> getFullBusInfo(@PathVariable("id") Integer id) {
+        try {
+            BusInfoDto busInfo = busService.getBusInfo(id);
+            return ResponseEntity.ok(busInfo);
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 }

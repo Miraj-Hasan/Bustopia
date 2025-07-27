@@ -298,3 +298,16 @@ export const getAllReviews = async () => {
   });
   return response;
 };
+
+export const fetchBusInfo = async (busId) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/buses/${busId}`, {
+      withCredentials: true,
+    });
+    console.log(response.data);
+    return response.data; // BusInfoDto
+  } catch (error) {
+    console.error("Failed to fetch bus info:", error);
+    throw error;
+  }
+};

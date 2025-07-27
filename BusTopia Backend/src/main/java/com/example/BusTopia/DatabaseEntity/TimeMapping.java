@@ -1,10 +1,12 @@
 package com.example.BusTopia.DatabaseEntity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.Duration;
 
 @Entity
+@Data
 @Table(name = "Time_mapping")
 public class TimeMapping {
     @Id

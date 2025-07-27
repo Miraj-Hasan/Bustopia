@@ -19,6 +19,7 @@ import PaymentResult from './Pages/Payment/PaymentResult';
 import CancelTicket from './Pages/CancelTicket/CancelTicket';
 import Analytics from './Pages/Analytics/Analytics';
 import AdminDashboard from './Pages/AdminDashboard/AdminDashboard';
+import BusInfo from './Pages/BusInfo/BusInfo';
 
 function App() {
 
@@ -53,6 +54,7 @@ function App() {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/oauth-success" element={<OAuthSuccess />} />
         <Route path="/review" element={<Review />} />
+        <Route path="/bus/:busid" element={<BusInfo />} />
         <Route
           path="/buy-ticket"
           element={

@@ -1,14 +1,15 @@
 package com.example.BusTopia.Services;
 
-import com.example.BusTopia.DatabaseEntity.Bus;
-import com.example.BusTopia.DatabaseEntity.Route;
+import com.example.BusTopia.DatabaseEntity.*;
 import com.example.BusTopia.MySqlRepositories.BusRepository;
 import com.example.BusTopia.MySqlRepositories.TimeMappingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.example.BusTopia.DTOs.BusInfo.BusInfoDto;
+import com.example.BusTopia.MySqlRepositories.PriceMappingRepository;
 
 import java.time.*;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -16,12 +17,85 @@ import java.util.stream.Collectors;
 public class BusService {
     private final BusRepository busRepository;
     private final RouteService routeService;
+    private final PriceMappingRepository priceMappingRepository;
     private final TimeMappingRepository timeMappingRepository;
     private Clock clock = Clock.systemDefaultZone(); // default clock
 
     // Setter for test override
     public void setClock(Clock clock) {
         this.clock = clock;
+    }
+
+    public BusInfoDto getBusInfo(Integer busId) {
+        Bus bus = busRepository.findById(busId)
+                .orElseThrow(() -> new RuntimeException("Bus not found"));
+
+        BusInfoDto dto = new BusInfoDto();
+
+        // Basic Bus Info
+        dto.setBusId(bus.getBusId());
+        dto.setCompanyName(bus.getCompanyName());
+        dto.setLicenseNo(bus.getLicenseNo());
+        dto.setCategory(bus.getCategory());
+        dto.setStartTime(bus.getStartTime());
+        dto.setPhoto(bus.getPhoto());
+
+        // Route Info
+        Route route = bus.getRoute();
+        List<String> stops = new ArrayList<>();
+        if (route != null) {
+            BusInfoDto.RouteDto routeDto = new BusInfoDto.RouteDto();
+            routeDto.setRouteId(route.getRouteId());
+            routeDto.setStops(route.getStops());
+            dto.setRoute(routeDto);
+            stops = route.getStops(); // Extract list of stops
+        }
+
+        // Seat Layout Info
+        SeatLayout layout = bus.getSeatLayout();
+        if (layout != null) {
+            BusInfoDto.SeatLayoutDto layoutDto = new BusInfoDto.SeatLayoutDto();
+            layoutDto.setLayoutId(layout.getLayoutId());
+            layoutDto.setName(layout.getName());
+            layoutDto.setCategory(layout.getCategory());
+            layoutDto.setLayout(layout.getLayout());
+            dto.setSeatLayout(layoutDto);
+        }
+
+        // Price mappings between consecutive stops
+        List<BusInfoDto.PriceMappingDto> priceMappingDtos = new ArrayList<>();
+        for (int i = 0; i < stops.size() - 1; i++) {
+            String stop1 = stops.get(i);
+            String stop2 = stops.get(i + 1);
+            Optional<Integer> priceOpt = priceMappingRepository.getPrice(stop1, stop2, bus.getCategory());
+            priceOpt.ifPresent(price -> {
+                BusInfoDto.PriceMappingDto pdto = new BusInfoDto.PriceMappingDto();
+                pdto.setStop1(stop1);
+                pdto.setStop2(stop2);
+                pdto.setCategory(bus.getCategory());
+                pdto.setPrice(price);
+                priceMappingDtos.add(pdto);
+            });
+        }
+        dto.setPriceMappings(priceMappingDtos);
+
+        // Time mappings between consecutive stops
+        List<BusInfoDto.TimeMappingDto> timeMappingDtos = new ArrayList<>();
+        for (int i = 0; i < stops.size() - 1; i++) {
+            String stop1 = stops.get(i);
+            String stop2 = stops.get(i + 1);
+            Optional<Integer> durationOpt = timeMappingRepository.findDurationBetweenStops(stop1, stop2);
+            durationOpt.ifPresent(duration -> {
+                BusInfoDto.TimeMappingDto tdto = new BusInfoDto.TimeMappingDto();
+                tdto.setStop1(stop1);
+                tdto.setStop2(stop2);
+                tdto.setDuration(duration);
+                timeMappingDtos.add(tdto);
+            });
+        }
+        dto.setTimeMappings(timeMappingDtos);
+
+        return dto;
     }
 
     public LocalTime getStartTimeForAStop(Bus bus, String stop) {

@@ -33,13 +33,6 @@ public interface BusRepository extends JpaRepository<Bus, Integer> {
 
     List<Bus> findByRouteIn(List<Route> routes);
 
-//    @Query("SELECT b FROM Bus b WHERE b.source = :source AND b.destination = :destination AND DATE(b.departureTime) = :date")
-//    List<Bus> findAvailableBuses(@Param("source") String source,
-//                                 @Param("destination") String destination,
-//                                 @Param("date") LocalDate date);
-    @Query(value = "SELECT * FROM bus LIMIT 10", nativeQuery = true)
-    List<Bus> findAvailableBuses();
-
     List<Bus> findByCompanyNameIgnoreCase(String companyName);
 
 }
