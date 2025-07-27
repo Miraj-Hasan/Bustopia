@@ -27,15 +27,18 @@ jobs:
           cache: 'npm'
           cache-dependency-path: './Bustopia FrontEnd/package-lock.json'
 
-      - name: Install frontend dependencies
+      - name: Clean install frontend dependencies
         working-directory: ./Bustopia FrontEnd
-        run: npm ci
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
 
       - name: Run frontend unit tests
         working-directory: ./Bustopia FrontEnd
         run: |
           npm run test:ci:unit
           echo "Unit tests completed successfully"
+
 
   backend-unit-tests:
     name: Backend Unit Tests
