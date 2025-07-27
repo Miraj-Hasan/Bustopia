@@ -1,5 +1,5 @@
 # Multi-stage build for React application
-FROM node:20-alpine AS build
+FROM node:20-slim AS build
 
 # Set working directory
 WORKDIR /app
@@ -7,13 +7,13 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies (including dev dependencies for build)
+# Clean install dependencies (this uses gnu version of native modules)
 RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Fix case sensitivity issues for assets
+# Optional asset logging
 RUN find . -name "*.png" -exec sh -c 'echo "Found: $1"' _ {} \;
 
 # Build the application
@@ -37,10 +37,10 @@ RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 # Copy built files from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy custom nginx configuration for HTTPS
+# Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose ports for both HTTP and HTTPS
+# Expose ports
 EXPOSE 80 443
 
 # Health check
@@ -48,4 +48,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider https://localhost:443 || exit 1
 
 # Start nginx
-CMD ["nginx", "-g", "daemon off;"] 
+CMD ["nginx", "-g", "daemon off;"]
