@@ -1,9 +1,7 @@
 package com.example.BusTopia.MySqlRepositories;
 
 import com.example.BusTopia.DatabaseEntity.Bus;
-import com.example.BusTopia.DatabaseEntity.Review;
 import com.example.BusTopia.DatabaseEntity.Route;
-import com.example.BusTopia.DatabaseEntity.Ticket;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
@@ -12,7 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.time.LocalDate;
 
 @Repository
 public interface BusRepository extends JpaRepository<Bus, Integer> {
@@ -32,6 +29,9 @@ public interface BusRepository extends JpaRepository<Bus, Integer> {
     List<Bus> getTravelledBuses(@Param("userId") int userId);
 
     List<Bus> findByRouteIn(List<Route> routes);
+
+    @Query("SELECT b FROM Bus b WHERE b.route.id = :routeId")
+    List<Bus> findByRouteId(@Param("routeId") int routeId);
 
     List<Bus> findByCompanyNameIgnoreCase(String companyName);
 
