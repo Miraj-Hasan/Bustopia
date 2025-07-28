@@ -3,18 +3,20 @@ set -e
 
 cd ~/SWE/Bustopia
 
-# Stop and remove all running containers, networks, and orphaned stuff
-echo "[0/3] Stopping and removing existing containers, networks, and orphaned stuff"
-docker-compose down --volumes --remove-orphans
-
-# Optionally: prune dangling images
+# [0/3] Stop and clean up old containers, volumes, and network
+echo "[0/3] Cleaning up containers and networks"
+docker-compose down --remove-orphans
 docker image prune -f
+docker network prune -f
 
+# [1/3] Pull latest images
 echo "[1/3] Pulling newest images from Docker Hub"
 docker-compose pull
 
+# [2/3] Start fresh containers
 echo "[2/3] Recreating containers"
-docker-compose up -d --remove-orphans
+docker-compose up -d --build --remove-orphans --force-recreate
 
-echo "[3/3] Showing running containers"
+# [3/3] List running containers
+echo "[3/3] Running containers:"
 docker ps
