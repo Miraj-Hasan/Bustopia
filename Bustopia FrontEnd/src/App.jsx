@@ -72,10 +72,7 @@ function App() {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/oauth-success" element={<OAuthSuccess />} />
         <Route path="/review" element={
-          <>
             <Review />
-            <ChatWidget />
-          </>
         } />
         <Route path="/bus/:busid" element={<BusInfo />} />
         <Route
