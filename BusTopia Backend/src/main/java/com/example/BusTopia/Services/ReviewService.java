@@ -10,7 +10,6 @@ import com.example.BusTopia.DatabaseEntity.Review;
 import com.example.BusTopia.MySqlRepositories.BusRepository;
 import com.example.BusTopia.MySqlRepositories.ReviewRepository;
 import com.example.BusTopia.MySqlRepositories.UserRepository;
-import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -21,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.core.env.Environment;
+
 
 @Service
 public class ReviewService {
@@ -29,14 +30,18 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final AwsFileUpload awsFileUpload;
 
+    private final Environment environment;
+
+
     @Value("${backend.origin}")
     private String backendUrl;
 
-    public ReviewService(BusRepository busRepository, UserRepository userRepository, UserRepository userRepository1, ReviewRepository reviewRepository, AwsFileUpload awsFileUpload) {
+    public ReviewService(BusRepository busRepository, UserRepository userRepository, UserRepository userRepository1, ReviewRepository reviewRepository, AwsFileUpload awsFileUpload, Environment environment) {
         this.busRepository = busRepository;
         this.userRepository = userRepository1;
         this.reviewRepository = reviewRepository;
         this.awsFileUpload = awsFileUpload;
+        this.environment = environment;
     }
 
     public List<String> getAllCompanyNames() {
@@ -129,6 +134,11 @@ public class ReviewService {
     @Transactional
     @EventListener(ContextRefreshedEvent.class)
     public void resetReviewSequence() {
+        // Skip reset in 'test' profile (e.g., H2 doesn't support setval())
+        if (List.of(environment.getActiveProfiles()).contains("test")) {
+            System.out.println("Skipping review sequence reset in test profile");
+            return;
+        }
         Long newVal = reviewRepository.resetSequence();
         System.out.println("Review sequence reset to: " + newVal);
     }
