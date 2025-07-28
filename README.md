@@ -116,10 +116,10 @@ Because the site uses HTTPS with a self-signed certificate:
 ## 🎥 Demo Videos
 
 * 🎥 **Feature Walkthrough**:
-  [https://youtu.be/FEATURE\_DEMO\_LINK](https://youtu.be/FEATURE_DEMO_LINK)
+  [https://youtu.be/2eusxxPA3s4?feature=shared](https://youtu.be/2eusxxPA3s4?feature=shared)
 
 * 🎥 **Infrastructure & DevOps**:
-  [https://youtu.be/INFRASTRUCTURE\_DEMO\_LINK](https://youtu.be/INFRASTRUCTURE_DEMO_LINK)
+  [https://youtu.be/dm1azcF_Jq0?feature=shared](https://youtu.be/dm1azcF_Jq0?feature=shared)
 
 ---
 
