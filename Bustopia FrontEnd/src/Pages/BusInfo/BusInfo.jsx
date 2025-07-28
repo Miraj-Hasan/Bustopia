@@ -292,8 +292,6 @@ const BusInfo = () => {
     return timeline;
   };
 
-  // for testing
-
   const timelineSegments = buildTimeline();
 
   return (
