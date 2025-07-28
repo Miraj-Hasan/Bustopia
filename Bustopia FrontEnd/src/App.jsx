@@ -61,7 +61,7 @@ function App() {
             </ProtectedRoute>
           }
         ></Route>
-        
+
 
         <Route path="/logout" element={<LogOut />} />
 
@@ -71,7 +71,12 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/oauth-success" element={<OAuthSuccess />} />
-        <Route path="/review" element={<Review />} />
+        <Route path="/review" element={
+          <>
+            <Review />
+            <ChatWidget />
+          </>
+        } />
         <Route path="/bus/:busid" element={<BusInfo />} />
         <Route
           path="/buy-ticket"
@@ -83,16 +88,19 @@ function App() {
         />
         <Route
           path="/payment" element={
-            
-              <Payment />
-            
+
+            <Payment />
+
           }
         />
         <Route path="/ticket-verification" element={<TicketVerification />} />
         <Route path="/payment-result" element={<PaymentResult />} />
         <Route path="/cancel-ticket" element={<CancelTicket />} />
 
-        <Route path="/homepage" element={<Home />} />
+        <Route path="/homepage" element={<>
+          <Home />
+          <ChatWidget />
+        </>} />
 
         {/* Admin Routes */}
         <Route

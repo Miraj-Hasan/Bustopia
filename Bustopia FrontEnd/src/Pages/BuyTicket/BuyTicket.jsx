@@ -26,7 +26,7 @@ const BuyTicket = () => {
     date: "",
     category: "",
     min_budget: "0",
-    max_budget: "10000",
+    max_budget: "2000",
   });
 
   const [buses, setBuses] = useState([]);
